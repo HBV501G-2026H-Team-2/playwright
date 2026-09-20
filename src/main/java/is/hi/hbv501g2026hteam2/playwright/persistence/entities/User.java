@@ -5,11 +5,13 @@ import java.util.UUID;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.enums.UserRole;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "users")
 public final class User {
+    @Id
     private UUID id;
     private String email;
     private String password;
@@ -17,16 +19,20 @@ public final class User {
     private Instant createdAt;
     private Instant updatedAt;
 
+    public User() {
+        this.id = UUID.randomUUID();
+        this.createdAt = this.updatedAt = Instant.now();
+    }
+
     public User(String email, String password) {
         this(email, password, UserRole.User);
     }
 
     public User(String email, String password, UserRole role) {
-        this.id = UUID.randomUUID();
+        this();
         this.email = email;
         this.password = password;
         this.role = role;
-        this.createdAt = this.updatedAt = Instant.now();
     }
 
     public UUID getId() {
