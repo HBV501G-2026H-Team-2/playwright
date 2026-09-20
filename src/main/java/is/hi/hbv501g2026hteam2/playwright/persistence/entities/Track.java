@@ -2,20 +2,23 @@ package is.hi.hbv501g2026hteam2.playwright.persistence.entities;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
 import jakarta.persistence.Entity; 
+import jakarta.persistence.Id; 
+import jakarta.persistence.Embedded; 
+import jakarta.persistence.Transient; 
 import java.util.UUID;
 import java.nio.file.Path;
 
 @Entity
 public final class Track {
+    @Id
     private UUID id; 
     private UUID userId; 
-    private Path filepath; 
+    @Embedded
     private TrackMetadata metadata; 
 
-    public Track(UUID id, UUID userId, Path filepath, TrackMetadata metadata){
+    public Track(UUID userId, TrackMetadata metadata){
         this.id = UUID.randomUUID();
         this.userId = userId; 
-        this.filepath = filepath; 
         this.metadata = metadata; 
     }
 
@@ -25,10 +28,6 @@ public final class Track {
 
     public UUID getUserId(){
         return userId; 
-    }
-
-    public Path getFilePath(){
-        return filepath; 
     }
 
     public TrackMetadata getMetadata(){
