@@ -10,12 +10,17 @@ public final class Track {
     @Id
     private UUID id;
     private UUID userId;
+    private String filepath;
     @Embedded
     private TrackMetadata metadata;
 
-    public Track(UUID userId, TrackMetadata metadata) {
+    protected Track() {
+    }
+
+    public Track(UUID userId, String filepath, TrackMetadata metadata) {
         this.id = UUID.randomUUID();
         this.userId = userId;
+        this.filepath = filepath;
         this.metadata = metadata;
     }
 
@@ -25,6 +30,10 @@ public final class Track {
 
     public UUID getUserId() {
         return userId;
+    }
+
+    public String getFilepath() {
+        return filepath;
     }
 
     public TrackMetadata getMetadata() {

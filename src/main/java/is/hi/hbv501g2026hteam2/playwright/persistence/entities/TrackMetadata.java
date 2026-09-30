@@ -14,6 +14,9 @@ public final class TrackMetadata {
     private Duration duration;
     private Date releaseDate;
 
+    protected TrackMetadata() {
+    }
+
     public TrackMetadata(String title, String artist, String genre, String albumName, Date releaseDate,
             Duration duration, String comment) {
         this.title = title;
