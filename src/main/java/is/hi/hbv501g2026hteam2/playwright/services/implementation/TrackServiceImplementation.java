@@ -53,10 +53,12 @@ public class TrackServiceImplementation implements TrackService {
                     file.getOriginalFilename(),
                     file.getInputStream());
 
+            TrackMetadata metadata = audioStorageService.extractMetadata(filepath);
+
             Track track = new Track(
                     userId,
                     filepath.toString(),
-                    null);
+                    metadata);
 
             return repository.save(track);
 
