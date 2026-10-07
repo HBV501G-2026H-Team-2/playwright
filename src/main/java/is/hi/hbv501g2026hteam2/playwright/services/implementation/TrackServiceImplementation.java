@@ -79,7 +79,13 @@ public class TrackServiceImplementation implements TrackService {
 
     @Override
     public InputStream getFileContents(Track track) {
-        return null;
+        try {
+            return audioStorageService.getFromStorage(track.getFilepath()); 
+        }
+        catch(IOException e) {
+            // TODO: more descpriptive error
+            throw new RuntimeException("Error", e); 
+        }
     }
 
 }
