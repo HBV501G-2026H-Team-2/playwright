@@ -68,4 +68,9 @@ public class AudioStorageServiceImplementation implements AudioStorageService {
             throw new RuntimeException("Could not extract metadata from audio file", e);
         }
     }
+
+    @Override 
+    public InputStream getFromStorage(String filepath) throws IOException {
+        return Files.newInputStream(Path.of(filepath)); 
+    }
 }

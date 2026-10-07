@@ -10,4 +10,6 @@ public interface AudioStorageService {
     Path addToStorage(String filename, InputStream contents) throws IOException;
 
     TrackMetadata extractMetadata(Path filepath);
+
+    InputStream getFromStorage(String filepath) throws IOException; 
 }
