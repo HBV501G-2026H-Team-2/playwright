@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
@@ -41,7 +43,11 @@ public class TrackServiceImplementation implements TrackService {
 
     @Override
     public Track get(UUID id) {
-        return repository.findById(id).orElse(null);
+        Track track = repository.findById(id).orElse(null);
+        if(track == null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND); 
+        }
+        return track; 
     }
 
     @Override
