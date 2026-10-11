@@ -3,10 +3,11 @@ package is.hi.hbv501g2026hteam2.playwright.services.implementation;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,8 +43,8 @@ public class TrackServiceImplementation implements TrackService {
     }
 
     @Override
-    public List<Track> getFromUser(UUID userId) {
-        return repository.findAllByUserId(userId);
+    public Set<Track> getFromUser(UUID userId) {
+        return Streamable.of(repository.findByUserId(userId)).toSet();
     }
 
     @Override
@@ -68,7 +69,7 @@ public class TrackServiceImplementation implements TrackService {
     }
 
     @Override
-    public List<Track> getFromUserWithMetadata(UUID userId, TrackMetadata metadata) {
+    public Set<Track> getFromUserWithMetadata(UUID userId, TrackMetadata metadata) {
         return null;
     }
 

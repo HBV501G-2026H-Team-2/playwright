@@ -1,23 +1,26 @@
 package is.hi.hbv501g2026hteam2.playwright.services;
 
-import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Playlist; 
-import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User; 
-import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track; 
 import java.util.List;
-import java.util.UUID; 
+import java.util.Set;
+import java.util.UUID;
+
+import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Playlist;
+import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 
 public interface PlaylistService {
-    Playlist create(UUID userId, Playlist playlist); 
 
-    void delete(Playlist playlist); 
+    Playlist create(UUID userId, Playlist playlist);
 
-    Playlist get(UUID id); 
+    void delete(Playlist playlist);
 
-    List<Playlist> getFromUser(UUID userId); 
+    Playlist get(UUID id);
 
-    List<Playlist> getContainingTrack(UUID trackId); 
+    Set<Playlist> getFromUser(UUID userId);
 
-    Playlist updateName(Playlist playlist, String newName); 
+    Set<Playlist> getContainingTrack(UUID trackId);
 
-    Playlist updateTracks(Playlist playlist, List<Track> newTracks); 
+    Playlist updateName(Playlist playlist, String newName);
+
+    Playlist updateTracks(Playlist playlist, List<Track> newTracks);
+
 }

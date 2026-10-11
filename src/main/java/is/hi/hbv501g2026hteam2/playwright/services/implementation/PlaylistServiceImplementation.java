@@ -1,51 +1,54 @@
 package is.hi.hbv501g2026hteam2.playwright.services.implementation;
 
-import org.springframework.beans.factory.annotation.Autowired; 
-import org.springframework.stereotype.Service; 
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
-import is.hi.hbv501g2026hteam2.playwright.persistence.repositories.PlaylistRepository;
-import is.hi.hbv501g2026hteam2.playwright.services.PlaylistService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Streamable;
+import org.springframework.stereotype.Service;
+
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Playlist;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
-
-import java.util.List; 
-import java.util.UUID; 
+import is.hi.hbv501g2026hteam2.playwright.persistence.repositories.PlaylistRepository;
+import is.hi.hbv501g2026hteam2.playwright.services.PlaylistService;
 
 @Service
 public class PlaylistServiceImplementation implements PlaylistService {
-    private PlaylistRepository repository; 
+
+    private PlaylistRepository repository;
 
     @Autowired
-    public PlaylistServiceImplementation(PlaylistRepository repository){
+    public PlaylistServiceImplementation(PlaylistRepository repository) {
         this.repository = repository;
     }
 
-    public Playlist create(UUID userId, Playlist playlist){
-        return repository.save(playlist); 
-    } 
+    public Playlist create(UUID userId, Playlist playlist) {
+        return repository.save(playlist);
+    }
 
-    public void delete(Playlist playlist){
-        repository.delete(playlist); 
-    } 
+    public void delete(Playlist playlist) {
+        repository.delete(playlist);
+    }
 
-    public Playlist get(UUID id){
+    public Playlist get(UUID id) {
         return repository.findById(id).orElse(null);
-    } 
+    }
 
-    public List<Playlist> getFromUser(UUID userId){
-        return repository.findAllByUserId(userId);
-    } 
+    public Set<Playlist> getFromUser(UUID userId) {
+        return Streamable.of(repository.findByUserId(userId)).toSet();
+    }
 
-    public List<Playlist> getContainingTrack(UUID trackId){
-        return repository.findAllByTracksId(trackId);
-    } 
+    public Set<Playlist> getContainingTrack(UUID trackId) {
+        return Streamable.of(repository.findByTrackId(trackId)).toSet();
+    }
 
-    public Playlist updateName(Playlist playlist, String newName){
-        return null; 
-    } 
+    public Playlist updateName(Playlist playlist, String newName) {
+        return null;
+    }
 
-    public Playlist updateTracks(Playlist playlist, List<Track> newTracks){
-        return null; 
-    } 
+    public Playlist updateTracks(Playlist playlist, List<Track> newTracks) {
+        return null;
+    }
 
 }

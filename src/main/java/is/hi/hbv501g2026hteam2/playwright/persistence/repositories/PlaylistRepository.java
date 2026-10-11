@@ -1,19 +1,15 @@
 package is.hi.hbv501g2026hteam2.playwright.persistence.repositories;
 
-import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Playlist; 
-import org.springframework.data.jpa.repository.JpaRepository; 
-import java.util.Optional; 
-import java.util.UUID; 
-import java.util.List;
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Playlist;
 
 public interface PlaylistRepository extends JpaRepository<Playlist, UUID> {
-    Playlist save(Playlist playlist); 
 
-    void delete(Playlist playlist); 
+    Iterable<Playlist> findByUserId(UUID userId);
 
-    Optional<Playlist> findById(UUID id); 
+    Iterable<Playlist> findByTrackId(UUID trackId);
 
-    List<Playlist> findAllByUserId(UUID userId); 
-
-    List<Playlist> findAllByTracksId(UUID trackId); 
 }
