@@ -2,7 +2,6 @@ package is.hi.hbv501g2026hteam2.playwright.services.implementation;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,21 +13,24 @@ import org.springframework.web.multipart.MultipartFile;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
 import is.hi.hbv501g2026hteam2.playwright.persistence.repositories.TrackRepository;
-import is.hi.hbv501g2026hteam2.playwright.services.TrackService;
 import is.hi.hbv501g2026hteam2.playwright.services.AudioStorageService;
+import is.hi.hbv501g2026hteam2.playwright.services.TrackService;
+import is.hi.hbv501g2026hteam2.playwright.services.UserService;
 
 @Service
 public class TrackServiceImplementation implements TrackService {
 
     private final TrackRepository repository;
+    private final UserService userService;
     private final AudioStorageService audioStorageService;
 
     @Autowired
     public TrackServiceImplementation(
             TrackRepository repository,
+            UserService userService,
             AudioStorageService audioStorageService) {
-
         this.repository = repository;
+        this.userService = userService;
         this.audioStorageService = audioStorageService;
     }
 
@@ -49,17 +51,14 @@ public class TrackServiceImplementation implements TrackService {
 
     @Override
     public Track store(UUID userId, MultipartFile file) {
+        var user = userService.get(userId);
+        var track = new Track(user, file.getOriginalFilename());
+
         try {
-            Path filepath = audioStorageService.addToStorage(
-                    file.getOriginalFilename(),
-                    file.getInputStream());
+            audioStorageService.addToStorage(track.getId(), file.getInputStream());
 
-            TrackMetadata metadata = audioStorageService.extractMetadata(filepath);
-
-            Track track = new Track(
-                    userId,
-                    filepath.toString(),
-                    metadata);
+            var metadata = audioStorageService.extractMetadata(track.getId());
+            track.setMetadata(metadata);
 
             return repository.save(track);
 
@@ -81,11 +80,10 @@ public class TrackServiceImplementation implements TrackService {
     @Override
     public InputStream getFileContents(Track track) {
         try {
-            return audioStorageService.getFromStorage(track.getFilepath()); 
-        }
-        catch(IOException e) {
+            return audioStorageService.getFromStorage(track.getId());
+        } catch (IOException e) {
             // TODO: more descpriptive error
-            throw new RuntimeException("Error", e); 
+            throw new RuntimeException("Error", e);
         }
     }
 

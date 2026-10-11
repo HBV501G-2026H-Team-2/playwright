@@ -5,19 +5,17 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.UUID;
 import java.time.Duration;
+import java.util.UUID;
 
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
-
-import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
-
 import org.springframework.stereotype.Service;
 
+import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
 import is.hi.hbv501g2026hteam2.playwright.services.AudioStorageService;
 
 @Service
@@ -29,10 +27,13 @@ public class AudioStorageServiceImplementation implements AudioStorageService {
         Files.createDirectories(storageRoot);
     }
 
+    private Path resolveStoragePath(UUID id) {
+        return storageRoot.resolve(id.toString());
+    }
+
     @Override
-    public Path addToStorage(String filename, InputStream contents) throws IOException {
-        String storedFilename = UUID.randomUUID() + "-" + filename;
-        Path destination = storageRoot.resolve(storedFilename);
+    public Path addToStorage(UUID id, InputStream contents) throws IOException {
+        Path destination = resolveStoragePath(id);
 
         Files.copy(contents, destination, StandardCopyOption.REPLACE_EXISTING);
 
@@ -40,9 +41,10 @@ public class AudioStorageServiceImplementation implements AudioStorageService {
     }
 
     @Override
-    public TrackMetadata extractMetadata(Path filepath) {
+    public TrackMetadata extractMetadata(UUID id) throws IOException {
         try {
-            AudioFile audioFile = AudioFileIO.read(filepath.toFile());
+            Path storagePath = resolveStoragePath(id);
+            AudioFile audioFile = AudioFileIO.read(storagePath.toFile());
 
             Tag tag = audioFile.getTag();
             AudioHeader header = audioFile.getAudioHeader();
@@ -69,8 +71,9 @@ public class AudioStorageServiceImplementation implements AudioStorageService {
         }
     }
 
-    @Override 
-    public InputStream getFromStorage(String filepath) throws IOException {
-        return Files.newInputStream(Path.of(filepath)); 
+    @Override
+    public InputStream getFromStorage(UUID id) throws IOException {
+        return Files.newInputStream(Path.of(id.toString()));
     }
+
 }
