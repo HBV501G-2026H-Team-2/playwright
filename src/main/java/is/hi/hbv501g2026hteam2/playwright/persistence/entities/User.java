@@ -1,7 +1,12 @@
 package is.hi.hbv501g2026hteam2.playwright.persistence.entities;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.enums.UserRole;
 import jakarta.persistence.Column;
@@ -9,11 +14,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "users")
-public class User {
+public final class User implements UserDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -53,7 +57,12 @@ public class User {
         return email;
     }
 
+    public String getUsername() {
+        return email;
+    }
+
     public void setEmail(String email) {
+        this.updatedAt = Instant.now();
         this.email = email;
     }
 
@@ -62,6 +71,7 @@ public class User {
     }
 
     public void setPassword(String password) {
+        this.updatedAt = Instant.now();
         this.password = password;
     }
 
@@ -69,7 +79,12 @@ public class User {
         return role;
     }
 
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(role);
+    }
+
     public void setRole(UserRole role) {
+        this.updatedAt = Instant.now();
         this.role = role;
     }
 
@@ -84,4 +99,5 @@ public class User {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
 }
