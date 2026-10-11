@@ -4,23 +4,32 @@ import java.time.Instant;
 import java.util.UUID;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.enums.UserRole;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "users")
-public final class User {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(unique = true, nullable = false)
     private String email;
+
+    @Column(nullable = false)
     private String password;
+
     private UserRole role;
+
     private Instant createdAt;
+
     private Instant updatedAt;
 
     public User() {
-        this.id = UUID.randomUUID();
         this.createdAt = this.updatedAt = Instant.now();
     }
 

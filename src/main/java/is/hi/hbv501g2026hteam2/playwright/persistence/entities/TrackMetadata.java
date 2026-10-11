@@ -1,11 +1,13 @@
 package is.hi.hbv501g2026hteam2.playwright.persistence.entities;
 
-import jakarta.persistence.Embeddable;
 import java.time.Duration;
 import java.util.Date;
 
+import jakarta.persistence.Embeddable;
+
 @Embeddable
 public final class TrackMetadata {
+
     private String title;
     private String artist;
     private String genre;
@@ -13,9 +15,6 @@ public final class TrackMetadata {
     private String comment;
     private Duration duration;
     private Date releaseDate;
-
-    protected TrackMetadata() {
-    }
 
     public TrackMetadata(String title, String artist, String genre, String albumName, Date releaseDate,
             Duration duration, String comment) {
@@ -32,27 +31,56 @@ public final class TrackMetadata {
         return title;
     }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public String getArtist() {
         return artist;
+    }
+
+    public void setArtist(String artist) {
+        this.artist = artist;
     }
 
     public String getGenre() {
         return genre;
     }
 
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
+
     public String getAlbumName() {
         return albumName;
     }
 
-    public Date getReleaseDate() {
-        return releaseDate;
+    public void setAlbumName(String albumName) {
+        this.albumName = albumName;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     public Duration getDuration() {
         return duration;
     }
 
-    public String getComment() {
-        return comment;
+    public void setDuration(Duration duration) {
+        this.duration = duration;
     }
+
+    public Date getReleaseDate() {
+        return releaseDate;
+    }
+
+    public void setReleaseDate(Date releaseDate) {
+        this.releaseDate = releaseDate;
+    }
+
 }
