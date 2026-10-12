@@ -1,24 +1,31 @@
 package is.hi.hbv501g2026hteam2.playwright.controllers;
 
+import java.net.URI;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
+import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
+import is.hi.hbv501g2026hteam2.playwright.persistence.enums.UserRole;
 import is.hi.hbv501g2026hteam2.playwright.services.TrackService;
 
 @RestController
+@RequestMapping("/api/tracks")
 public class TrackController {
 
     private final TrackService trackService;
@@ -27,31 +34,65 @@ public class TrackController {
         this.trackService = trackService;
     }
 
-    // TODO: Get userId from authenticated user once auth implementation is decided.
-    @PostMapping("/tracks")
-    public Track uploadTrack(
-            @RequestParam("userId") UUID userId,
+    @PostMapping
+    public ResponseEntity<Track> uploadTrack(
+            @AuthenticationPrincipal User user,
             @RequestParam("file") MultipartFile file) {
+        if (user.getRole() != UserRole.User)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        return trackService.store(userId, file);
+        Track track = trackService.store(user.getId(), file);
+        URI location = URI.create("/api/tracks/" + track.getId().toString());
+
+        return ResponseEntity.created(location).body(track);
     }
 
-    @RequestMapping(value="/tracks/{trackId}", method=RequestMethod.GET)
-    public Track getTrack(@PathVariable UUID trackId, Model model) {
-        Track track = trackService.get(trackId); 
-        return track; 
+    @GetMapping("/{trackId}")
+    public ResponseEntity<Track> getTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
+        Optional<Track> trackOpt = trackService.get(trackId);
+        if (trackOpt.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        Track track = trackOpt.get();
+        if (user.getId() != track.getOwner().getId())
+            return ResponseEntity.notFound().build();
+
+        return ResponseEntity.ok(track);
     }
 
-    @RequestMapping(value="/tracks/{trackId}/download", method=RequestMethod.GET)
-    public Resource downloadTrack(@PathVariable UUID trackId, Model model) {
-        Track track = trackService.get(trackId);
-        return new InputStreamResource(trackService.getFileContents(track));
-    } 
+    @GetMapping("/{trackId}/file")
+    public ResponseEntity<Resource> downloadTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
+        Optional<Track> trackOpt = trackService.get(trackId);
+        if (trackOpt.isEmpty())
+            return ResponseEntity.notFound().build();
 
-    @DeleteMapping(value="/tracks/{trackId}")
-    public ResponseEntity<Void> deleteTrack(@PathVariable UUID trackId){
-        Track track = trackService.get(trackId); 
-        trackService.delete(track);
-        return ResponseEntity.noContent().build(); 
+        Track track = trackOpt.get();
+        if (user.getId() != track.getOwner().getId())
+            return ResponseEntity.notFound().build();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + track.getFilename() + "\"");
+
+        var resource = new InputStreamResource(trackService.getFileContents(track));
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .headers(headers)
+                .body(resource);
+    }
+
+    @DeleteMapping(value = "/tracks/{trackId}")
+    public ResponseEntity<Void> deleteTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
+        Optional<Track> trackOpt = trackService.get(trackId);
+        if (trackOpt.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        Track track = trackOpt.get();
+        if (user.getId() != track.getOwner().getId())
+            return ResponseEntity.notFound().build();
+
+        trackService.delete(track.getId());
+
+        return ResponseEntity.noContent().build();
     }
 }

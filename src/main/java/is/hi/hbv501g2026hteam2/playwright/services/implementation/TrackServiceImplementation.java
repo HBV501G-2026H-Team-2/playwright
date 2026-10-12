@@ -2,6 +2,7 @@ package is.hi.hbv501g2026hteam2.playwright.services.implementation;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -9,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
@@ -37,27 +36,8 @@ public class TrackServiceImplementation implements TrackService {
     }
 
     @Override
-    public void delete(Track track) {
-        repository.delete(track);
-    }
-
-    @Override
-    public Track get(UUID id) {
-        Track track = repository.findById(id).orElse(null);
-        if(track == null){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND); 
-        }
-        return track; 
-    }
-
-    @Override
-    public Set<Track> getFromUser(UUID userId) {
-        return Streamable.of(repository.findByUserId(userId)).toSet();
-    }
-
-    @Override
     public Track store(UUID userId, MultipartFile file) {
-        var user = userService.get(userId);
+        var user = userService.get(userId).orElseThrow();
         var track = new Track(user, file.getOriginalFilename());
 
         try {
@@ -69,8 +49,27 @@ public class TrackServiceImplementation implements TrackService {
             return repository.save(track);
 
         } catch (IOException e) {
-            throw new RuntimeException("Could not store audio file", e);
+            throw new RuntimeException("could not store audio file", e);
         }
+    }
+
+    @Override
+    public boolean delete(UUID id) {
+        if (!repository.existsById(id))
+            return false;
+
+        repository.deleteById(id);
+        return true;
+    }
+
+    @Override
+    public Optional<Track> get(UUID id) {
+        return repository.findById(id);
+    }
+
+    @Override
+    public Set<Track> getFromUser(UUID userId) {
+        return Streamable.of(repository.findByUserId(userId)).toSet();
     }
 
     @Override
@@ -88,8 +87,7 @@ public class TrackServiceImplementation implements TrackService {
         try {
             return audioStorageService.getFromStorage(track.getId());
         } catch (IOException e) {
-            // TODO: more descpriptive error
-            throw new RuntimeException("Error", e);
+            throw new RuntimeException("could not get file contents", e);
         }
     }
 

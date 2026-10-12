@@ -1,8 +1,10 @@
 package is.hi.hbv501g2026hteam2.playwright.services.implementation;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
@@ -11,7 +13,8 @@ import is.hi.hbv501g2026hteam2.playwright.services.UserService;
 
 @Service
 public class UserServiceImplementation implements UserService {
-    private UserRepository repository;
+
+    private final UserRepository repository;
 
     @Autowired
     public UserServiceImplementation(UserRepository repository) {
@@ -24,34 +27,39 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public void delete(User user) {
+    public boolean delete(UUID id) {
+        if (!repository.existsById(id))
+            return false;
+
+        repository.deleteById(id);
+        return true;
     }
 
     @Override
-    public void login(User user) {
+    public Optional<User> get(UUID id) {
+        return repository.findById(id);
     }
 
     @Override
-    public void logout(User user) {
+    public Optional<User> getByEmail(String email) {
+        return repository.findByEmail(email);
     }
 
     @Override
-    public User get(UUID id) {
-        return null;
-    }
-
-    @Override
-    public User getByEmail(String email) {
-        return null;
+    public User loadUserByUsername(String email) {
+        return getByEmail(email).orElseThrow(() -> new UsernameNotFoundException("unknown email"));
     }
 
     @Override
     public User updateEmail(User user, String newEmail) {
-        return null;
+        user.setEmail(newEmail);
+        return repository.save(user);
     }
 
     @Override
     public User updatePassword(User user, String newPassword) {
-        return null;
+        user.setPassword(newPassword);
+        return repository.save(user);
     }
+
 }

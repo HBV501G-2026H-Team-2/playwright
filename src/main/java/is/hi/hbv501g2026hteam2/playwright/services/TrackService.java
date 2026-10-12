@@ -1,6 +1,7 @@
 package is.hi.hbv501g2026hteam2.playwright.services;
 
 import java.io.InputStream;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -13,9 +14,9 @@ public interface TrackService {
 
     Track store(UUID userId, MultipartFile file);
 
-    void delete(Track track);
+    boolean delete(UUID id);
 
-    Track get(UUID id);
+    Optional<Track> get(UUID id);
 
     Set<Track> getFromUser(UUID userId);
 

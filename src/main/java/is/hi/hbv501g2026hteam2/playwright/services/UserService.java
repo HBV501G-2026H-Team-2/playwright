@@ -1,22 +1,24 @@
 package is.hi.hbv501g2026hteam2.playwright.services;
 
-import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
+import java.util.Optional;
 import java.util.UUID;
 
-public interface UserService {
+import org.springframework.security.core.userdetails.UserDetailsService;
+
+import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
+
+public interface UserService extends UserDetailsService {
+
     User register(User user);
 
-    void delete(User user);
+    boolean delete(UUID id);
 
-    void login(User user);
+    Optional<User> get(UUID id);
 
-    void logout(User user);
-
-    User get(UUID id);
-
-    User getByEmail(String email);
+    Optional<User> getByEmail(String email);
 
     User updateEmail(User user, String newEmail);
 
     User updatePassword(User user, String newPassword);
+
 }
