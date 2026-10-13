@@ -15,9 +15,9 @@ public interface UserService extends UserDetailsService {
 
     Optional<User> get(UUID id);
 
-    Optional<User> getByEmail(String email);
+    Optional<User> getByUsername(String username);
 
-    User updateEmail(User user, String newEmail);
+    User updateUsername(User user, String newUsername);
 
     User updatePassword(User user, String newPassword);
 

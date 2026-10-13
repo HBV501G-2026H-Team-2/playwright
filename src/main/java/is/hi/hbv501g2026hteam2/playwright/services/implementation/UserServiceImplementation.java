@@ -41,18 +41,18 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public Optional<User> getByEmail(String email) {
-        return repository.findByEmail(email);
+    public Optional<User> getByUsername(String username) {
+        return repository.findByUsername(username);
     }
 
     @Override
-    public User loadUserByUsername(String email) {
-        return getByEmail(email).orElseThrow(() -> new UsernameNotFoundException("unknown email"));
+    public User loadUserByUsername(String username) {
+        return getByUsername(username).orElseThrow(() -> new UsernameNotFoundException("unknown username"));
     }
 
     @Override
-    public User updateEmail(User user, String newEmail) {
-        user.setEmail(newEmail);
+    public User updateUsername(User user, String newUsername) {
+        user.setUsername(newUsername);
         return repository.save(user);
     }
 

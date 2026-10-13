@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -16,14 +17,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
-public final class User implements UserDetails {
+@Table(name = "app_user")
+public final class User implements UserDetails, CredentialsContainer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(unique = true, nullable = false)
-    private String email;
+    private String username;
 
     @Column(nullable = false)
     private String password;
@@ -38,13 +40,13 @@ public final class User implements UserDetails {
         this.createdAt = this.updatedAt = Instant.now();
     }
 
-    public User(String email, String password) {
-        this(email, password, UserRole.User);
+    public User(String username, String password) {
+        this(username, password, UserRole.User);
     }
 
-    public User(String email, String password, UserRole role) {
+    public User(String username, String password, UserRole role) {
         this();
-        this.email = email;
+        this.username = username;
         this.password = password;
         this.role = role;
     }
@@ -53,19 +55,17 @@ public final class User implements UserDetails {
         return id;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
+    @Override
     public String getUsername() {
-        return email;
+        return username;
     }
 
-    public void setEmail(String email) {
+    public void setUsername(String username) {
         this.updatedAt = Instant.now();
-        this.email = email;
+        this.username = username;
     }
 
+    @Override
     public String getPassword() {
         return password;
     }
@@ -79,6 +79,7 @@ public final class User implements UserDetails {
         return role;
     }
 
+    @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(role);
     }
@@ -98,6 +99,11 @@ public final class User implements UserDetails {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    @Override
+    public void eraseCredentials() {
+        this.password = null;
     }
 
 }

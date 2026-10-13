@@ -9,6 +9,6 @@ import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    Optional<User> findByEmail(String email);
+    Optional<User> findByUsername(String username);
 
 }

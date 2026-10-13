@@ -38,23 +38,31 @@ public class TrackController {
     public ResponseEntity<Track> uploadTrack(
             @AuthenticationPrincipal User user,
             @RequestParam("file") MultipartFile file) {
-        if (user.getRole() != UserRole.User)
+        if (user == null || user.getRole() != UserRole.User)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        Track track = trackService.store(user.getId(), file);
-        URI location = URI.create("/api/tracks/" + track.getId().toString());
+        if (file.isEmpty())
+            return ResponseEntity.badRequest().body(null);
 
+        Track track = trackService.store(user.getId(), file);
+        if (track == null)
+            return ResponseEntity.internalServerError().build();
+
+        URI location = URI.create("/api/tracks/" + track.getId().toString());
         return ResponseEntity.created(location).body(track);
     }
 
     @GetMapping("/{trackId}")
     public ResponseEntity<Track> getTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
         Optional<Track> trackOpt = trackService.get(trackId);
         if (trackOpt.isEmpty())
             return ResponseEntity.notFound().build();
 
         Track track = trackOpt.get();
-        if (user.getId() != track.getOwner().getId())
+        if (!user.getId().equals(track.getOwner().getId()))
             return ResponseEntity.notFound().build();
 
         return ResponseEntity.ok(track);
@@ -62,12 +70,18 @@ public class TrackController {
 
     @GetMapping("/{trackId}/file")
     public ResponseEntity<Resource> downloadTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        if (user.getRole() != UserRole.User)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
         Optional<Track> trackOpt = trackService.get(trackId);
         if (trackOpt.isEmpty())
             return ResponseEntity.notFound().build();
 
         Track track = trackOpt.get();
-        if (user.getId() != track.getOwner().getId())
+        if (!user.getId().equals(track.getOwner().getId()))
             return ResponseEntity.notFound().build();
 
         HttpHeaders headers = new HttpHeaders();
@@ -83,12 +97,15 @@ public class TrackController {
 
     @DeleteMapping(value = "/tracks/{trackId}")
     public ResponseEntity<Void> deleteTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
         Optional<Track> trackOpt = trackService.get(trackId);
         if (trackOpt.isEmpty())
             return ResponseEntity.notFound().build();
 
         Track track = trackOpt.get();
-        if (user.getId() != track.getOwner().getId())
+        if (!user.getId().equals(track.getOwner().getId()))
             return ResponseEntity.notFound().build();
 
         trackService.delete(track.getId());
