@@ -2,6 +2,7 @@ package is.hi.hbv501g2026hteam2.playwright.controllers;
 
 import java.net.URI;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.core.io.InputStreamResource;
@@ -44,12 +45,21 @@ public class TrackController {
         if (file.isEmpty())
             return ResponseEntity.badRequest().body(null);
 
-        Track track = trackService.store(user.getId(), file);
+        Track track = trackService.store(user, file);
         if (track == null)
             return ResponseEntity.internalServerError().build();
 
         URI location = URI.create("/api/tracks/" + track.getId().toString());
         return ResponseEntity.created(location).body(track);
+    }
+
+    @GetMapping
+    public ResponseEntity<Set<Track>> getTracks(@AuthenticationPrincipal User user) {
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        Set<Track> tracks = trackService.getFromUser(user);
+        return ResponseEntity.ok(tracks);
     }
 
     @GetMapping("/{trackId}")
@@ -95,7 +105,7 @@ public class TrackController {
                 .body(resource);
     }
 
-    @DeleteMapping(value = "/tracks/{trackId}")
+    @DeleteMapping(value = "/{trackId}")
     public ResponseEntity<Void> deleteTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
         if (user == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Playlist;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
+import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
 
 public interface PlaylistService {
 
@@ -15,7 +16,7 @@ public interface PlaylistService {
 
     Playlist get(UUID id);
 
-    Set<Playlist> getFromUser(UUID userId);
+    Set<Playlist> getFromUser(User user);
 
     Set<Playlist> getContainingTrack(UUID trackId);
 

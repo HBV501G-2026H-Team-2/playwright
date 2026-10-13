@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Playlist;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
+import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
 import is.hi.hbv501g2026hteam2.playwright.persistence.repositories.PlaylistRepository;
 import is.hi.hbv501g2026hteam2.playwright.services.PlaylistService;
 
@@ -35,12 +36,12 @@ public class PlaylistServiceImplementation implements PlaylistService {
         return repository.findById(id).orElse(null);
     }
 
-    public Set<Playlist> getFromUser(UUID userId) {
-        return Streamable.of(repository.findByUserId(userId)).toSet();
+    public Set<Playlist> getFromUser(User user) {
+        return Streamable.of(repository.findByOwner(user)).toSet();
     }
 
     public Set<Playlist> getContainingTrack(UUID trackId) {
-        return Streamable.of(repository.findByTrackId(trackId)).toSet();
+        return Streamable.of(repository.findByTracks_Id(trackId)).toSet();
     }
 
     public Playlist updateName(Playlist playlist, String newName) {

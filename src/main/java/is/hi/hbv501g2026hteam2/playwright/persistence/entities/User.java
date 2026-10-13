@@ -9,12 +9,17 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import is.hi.hbv501g2026hteam2.playwright.persistence.enums.UserRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "app_user")
@@ -27,6 +32,7 @@ public final class User implements UserDetails, CredentialsContainer {
     @Column(unique = true, nullable = false)
     private String username;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Column(nullable = false)
     private String password;
 
@@ -35,6 +41,12 @@ public final class User implements UserDetails, CredentialsContainer {
     private Instant createdAt;
 
     private Instant updatedAt;
+
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
+    private Collection<Track> tracks;
+
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
+    private Collection<Playlist> playlists;
 
     public User() {
         this.createdAt = this.updatedAt = Instant.now();

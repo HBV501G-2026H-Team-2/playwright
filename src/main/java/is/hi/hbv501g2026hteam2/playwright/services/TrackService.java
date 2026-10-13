@@ -9,18 +9,19 @@ import org.springframework.web.multipart.MultipartFile;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
+import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
 
 public interface TrackService {
 
-    Track store(UUID userId, MultipartFile file);
+    Track store(User user, MultipartFile file);
 
     boolean delete(UUID id);
 
     Optional<Track> get(UUID id);
 
-    Set<Track> getFromUser(UUID userId);
+    Set<Track> getFromUser(User user);
 
-    Set<Track> getFromUserWithMetadata(UUID userId, TrackMetadata metadata);
+    Set<Track> getFromUserWithMetadata(User user, TrackMetadata metadata);
 
     Track updateMetadata(Track track, TrackMetadata newMetadata);
 

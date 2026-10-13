@@ -13,31 +13,27 @@ import org.springframework.web.multipart.MultipartFile;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
+import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
 import is.hi.hbv501g2026hteam2.playwright.persistence.repositories.TrackRepository;
 import is.hi.hbv501g2026hteam2.playwright.services.AudioStorageService;
 import is.hi.hbv501g2026hteam2.playwright.services.TrackService;
-import is.hi.hbv501g2026hteam2.playwright.services.UserService;
 
 @Service
 public class TrackServiceImplementation implements TrackService {
 
     private final TrackRepository repository;
-    private final UserService userService;
     private final AudioStorageService audioStorageService;
 
     @Autowired
     public TrackServiceImplementation(
             TrackRepository repository,
-            UserService userService,
             AudioStorageService audioStorageService) {
         this.repository = repository;
-        this.userService = userService;
         this.audioStorageService = audioStorageService;
     }
 
     @Override
-    public Track store(UUID userId, MultipartFile file) {
-        var user = userService.get(userId).orElseThrow();
+    public Track store(User user, MultipartFile file) {
         var track = new Track(user, file.getOriginalFilename());
         track = repository.save(track);
 
@@ -75,12 +71,12 @@ public class TrackServiceImplementation implements TrackService {
     }
 
     @Override
-    public Set<Track> getFromUser(UUID userId) {
-        return Streamable.of(repository.findByUserId(userId)).toSet();
+    public Set<Track> getFromUser(User user) {
+        return Streamable.of(repository.findByOwner(user)).toSet();
     }
 
     @Override
-    public Set<Track> getFromUserWithMetadata(UUID userId, TrackMetadata metadata) {
+    public Set<Track> getFromUserWithMetadata(User user, TrackMetadata metadata) {
         return null;
     }
 

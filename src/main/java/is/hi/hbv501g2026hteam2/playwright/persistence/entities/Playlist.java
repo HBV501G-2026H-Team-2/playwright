@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -25,6 +27,7 @@ public final class Playlist {
     @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
     private UUID id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User owner;
@@ -36,6 +39,9 @@ public final class Playlist {
     @JoinTable(name = "playlist_tracks", joinColumns = @JoinColumn(name = "playlist_id"), inverseJoinColumns = @JoinColumn(name = "track_id"))
     @OrderColumn(nullable = false)
     private List<Track> tracks;
+
+    protected Playlist() {
+    }
 
     public UUID getId() {
         return id;
