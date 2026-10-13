@@ -39,6 +39,7 @@ public class TrackServiceImplementation implements TrackService {
     public Track store(UUID userId, MultipartFile file) {
         var user = userService.get(userId).orElseThrow();
         var track = new Track(user, file.getOriginalFilename());
+        track = repository.save(track);
 
         try {
             audioStorageService.addToStorage(track.getId(), file.getInputStream());

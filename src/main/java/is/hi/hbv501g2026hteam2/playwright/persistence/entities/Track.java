@@ -30,6 +30,9 @@ public final class Track {
     @Embedded
     private TrackMetadata metadata;
 
+    protected Track() {
+    }
+
     public Track(User owner, String filename) {
         this.owner = owner;
         this.filename = filename;

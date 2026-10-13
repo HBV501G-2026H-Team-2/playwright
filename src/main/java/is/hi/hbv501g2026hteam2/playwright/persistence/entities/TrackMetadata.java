@@ -1,8 +1,8 @@
 package is.hi.hbv501g2026hteam2.playwright.persistence.entities;
 
 import java.time.Duration;
-import java.util.Date;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
@@ -14,9 +14,13 @@ public final class TrackMetadata {
     private String albumName;
     private String comment;
     private Duration duration;
-    private Date releaseDate;
+    @Column(name = "track_year")
+    private String year;
 
-    public TrackMetadata(String title, String artist, String genre, String albumName, Date releaseDate,
+    protected TrackMetadata() {
+    }
+
+    public TrackMetadata(String title, String artist, String genre, String albumName, String year,
             Duration duration, String comment) {
         this.title = title;
         this.artist = artist;
@@ -24,7 +28,7 @@ public final class TrackMetadata {
         this.albumName = albumName;
         this.comment = comment;
         this.duration = duration;
-        this.releaseDate = releaseDate;
+        this.year = year;
     }
 
     public String getTitle() {
@@ -75,12 +79,12 @@ public final class TrackMetadata {
         this.duration = duration;
     }
 
-    public Date getReleaseDate() {
-        return releaseDate;
+    public String getYear() {
+        return year;
     }
 
-    public void setReleaseDate(Date releaseDate) {
-        this.releaseDate = releaseDate;
+    public void setYear(String year) {
+        this.year = year;
     }
 
 }
