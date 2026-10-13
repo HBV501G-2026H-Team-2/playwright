@@ -41,6 +41,12 @@ public class AudioStorageServiceImplementation implements AudioStorageService {
     }
 
     @Override
+    public boolean deleteFromStorage(UUID id) throws IOException {
+        Path storagePath = resolveStoragePath(id);
+        return Files.deleteIfExists(storagePath);
+    }
+
+    @Override
     public TrackMetadata extractMetadata(UUID id) throws IOException {
         try {
             Path storagePath = resolveStoragePath(id);

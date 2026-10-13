@@ -47,14 +47,20 @@ public class TrackServiceImplementation implements TrackService {
             track.setMetadata(metadata);
 
             return repository.save(track);
-
         } catch (IOException e) {
+            delete(track.getId());
             throw new RuntimeException("could not store audio file", e);
         }
     }
 
     @Override
     public boolean delete(UUID id) {
+        try {
+            audioStorageService.deleteFromStorage(id);
+        } catch (IOException e) {
+            // Ignore failed storage deletion, reap later
+        }
+
         if (!repository.existsById(id))
             return false;
 

@@ -11,6 +11,8 @@ public interface AudioStorageService {
 
     Path addToStorage(UUID id, InputStream contents) throws IOException;
 
+    boolean deleteFromStorage(UUID id) throws IOException;
+
     TrackMetadata extractMetadata(UUID id) throws IOException;
 
     InputStream getFromStorage(UUID id) throws IOException;
