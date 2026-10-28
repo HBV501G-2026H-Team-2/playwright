@@ -5,15 +5,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
 
 public interface TrackService {
 
-    Track store(User user, MultipartFile file);
+    Track store(User user, String filename, InputStream contents);
 
     boolean delete(UUID id);
 

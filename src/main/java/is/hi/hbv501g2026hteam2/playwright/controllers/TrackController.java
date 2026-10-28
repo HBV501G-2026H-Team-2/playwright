@@ -1,5 +1,6 @@
 package is.hi.hbv501g2026hteam2.playwright.controllers;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
 import java.util.Set;
@@ -45,12 +46,13 @@ public class TrackController {
         if (file.isEmpty())
             return ResponseEntity.badRequest().body(null);
 
-        Track track = trackService.store(user, file);
-        if (track == null)
+        try {
+            Track track = trackService.store(user, file.getOriginalFilename(), file.getInputStream());
+            URI location = URI.create("/api/tracks/" + track.getId().toString());
+            return ResponseEntity.created(location).body(track);
+        } catch (IOException e) {
             return ResponseEntity.internalServerError().build();
-
-        URI location = URI.create("/api/tracks/" + track.getId().toString());
-        return ResponseEntity.created(location).body(track);
+        }
     }
 
     @GetMapping

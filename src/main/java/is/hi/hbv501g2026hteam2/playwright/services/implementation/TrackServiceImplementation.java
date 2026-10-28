@@ -9,7 +9,6 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
@@ -33,12 +32,12 @@ public class TrackServiceImplementation implements TrackService {
     }
 
     @Override
-    public Track store(User user, MultipartFile file) {
-        var track = new Track(user, file.getOriginalFilename());
+    public Track store(User user, String filename, InputStream contents) {
+        var track = new Track(user, filename);
         track = repository.save(track);
 
         try {
-            audioStorageService.addToStorage(track.getId(), file.getInputStream());
+            audioStorageService.addToStorage(track.getId(), contents);
 
             var metadata = audioStorageService.extractMetadata(track.getId());
             track.setMetadata(metadata);
