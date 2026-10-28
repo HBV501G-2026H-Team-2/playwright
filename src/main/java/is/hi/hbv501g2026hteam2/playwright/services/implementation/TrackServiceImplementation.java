@@ -3,11 +3,11 @@ package is.hi.hbv501g2026hteam2.playwright.services.implementation;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Streamable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
@@ -70,12 +70,12 @@ public class TrackServiceImplementation implements TrackService {
     }
 
     @Override
-    public Set<Track> getFromUser(User user) {
-        return Streamable.of(repository.findByOwner(user)).toSet();
+    public Page<Track> getFromUser(User user, Pageable pageable) {
+        return repository.findByOwner(user, pageable);
     }
 
     @Override
-    public Set<Track> getFromUserWithMetadata(User user, TrackMetadata metadata) {
+    public Page<Track> getFromUserWithMetadata(User user, TrackMetadata metadata, Pageable pageable) {
         return null;
     }
 

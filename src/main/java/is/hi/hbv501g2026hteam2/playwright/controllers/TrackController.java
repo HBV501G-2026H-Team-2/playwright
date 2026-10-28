@@ -3,11 +3,12 @@ package is.hi.hbv501g2026hteam2.playwright.controllers;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,11 +57,11 @@ public class TrackController {
     }
 
     @GetMapping
-    public ResponseEntity<Set<Track>> getTracks(@AuthenticationPrincipal User user) {
+    public ResponseEntity<Page<Track>> getTracks(@AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        Set<Track> tracks = trackService.getFromUser(user);
+        Page<Track> tracks = trackService.getFromUser(user, pageable);
         return ResponseEntity.ok(tracks);
     }
 

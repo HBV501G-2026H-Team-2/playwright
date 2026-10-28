@@ -2,8 +2,10 @@ package is.hi.hbv501g2026hteam2.playwright.services;
 
 import java.io.InputStream;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
@@ -17,9 +19,9 @@ public interface TrackService {
 
     Optional<Track> get(UUID id);
 
-    Set<Track> getFromUser(User user);
+    Page<Track> getFromUser(User user, Pageable pageable);
 
-    Set<Track> getFromUserWithMetadata(User user, TrackMetadata metadata);
+    Page<Track> getFromUserWithMetadata(User user, TrackMetadata metadata, Pageable pageable);
 
     Track updateMetadata(Track track, TrackMetadata newMetadata);
 
