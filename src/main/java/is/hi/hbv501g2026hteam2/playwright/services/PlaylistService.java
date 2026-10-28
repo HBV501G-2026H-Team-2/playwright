@@ -4,15 +4,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import is.hi.hbv501g2026hteam2.playwright.dto.CreatePlaylistRequest;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Playlist;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
 
 public interface PlaylistService {
 
-    Playlist create(UUID userId, Playlist playlist);
+    Playlist create(User user, CreatePlaylistRequest request);
 
-    void delete(Playlist playlist);
+    boolean delete(UUID id);
 
     Playlist get(UUID id);
 

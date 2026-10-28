@@ -43,6 +43,12 @@ public final class Playlist {
     protected Playlist() {
     }
 
+    public Playlist(User owner, String name, List<Track> tracks) {
+        this.owner = owner;
+        this.name = name;
+        this.tracks = tracks;
+    }
+
     public UUID getId() {
         return id;
     }
