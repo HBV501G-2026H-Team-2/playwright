@@ -1,6 +1,7 @@
 package is.hi.hbv501g2026hteam2.playwright.services.implementation;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -8,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
 
-import is.hi.hbv501g2026hteam2.playwright.dto.CreatePlaylistRequest;
+import is.hi.hbv501g2026hteam2.playwright.dto.PlaylistRequest;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Playlist;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
@@ -28,7 +29,7 @@ public class PlaylistServiceImplementation implements PlaylistService {
         this.trackService = trackService;
     }
 
-    public Playlist create(User user, CreatePlaylistRequest request) {
+    public Playlist create(User user, PlaylistRequest request) {
         List<Track> tracks = request.getTrackIds()
                 .stream()
                 .map(id -> trackService.get(id).orElse(null))
@@ -48,8 +49,8 @@ public class PlaylistServiceImplementation implements PlaylistService {
         return true;
     }
 
-    public Playlist get(UUID id) {
-        return repository.findById(id).orElse(null);
+    public Optional<Playlist> get(UUID id) {
+        return repository.findById(id);
     }
 
     public Set<Playlist> getFromUser(User user) {
@@ -60,12 +61,18 @@ public class PlaylistServiceImplementation implements PlaylistService {
         return Streamable.of(repository.findByTracks_Id(trackId)).toSet();
     }
 
-    public Playlist updateName(Playlist playlist, String newName) {
-        return null;
-    }
+    public Playlist update(Playlist playlist, PlaylistRequest request) {
+        playlist.setName(request.getName());
 
-    public Playlist updateTracks(Playlist playlist, List<Track> newTracks) {
-        return null;
+        List<Track> tracks = request.getTrackIds()
+                .stream()
+                .map(id -> trackService.get(id).orElse(null))
+                .filter(track -> track != null && playlist.getOwner().getId().equals(track.getOwner().getId()))
+                .toList();
+
+        playlist.setTracks(tracks);
+
+        return repository.save(playlist);
     }
 
 }

@@ -3,12 +3,12 @@ package is.hi.hbv501g2026hteam2.playwright.dto;
 import java.util.List;
 import java.util.UUID;
 
-public class CreatePlaylistRequest {
+public class PlaylistRequest {
 
     private String name;
     private List<UUID> trackIds;
 
-    public CreatePlaylistRequest(String name, List<UUID> trackIds) {
+    public PlaylistRequest(String name, List<UUID> trackIds) {
         this.name = name;
         this.trackIds = trackIds;
     }
