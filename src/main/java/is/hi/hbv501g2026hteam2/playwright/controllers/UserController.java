@@ -1,6 +1,7 @@
 package is.hi.hbv501g2026hteam2.playwright.controllers;
 
 import java.net.URI;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -154,4 +156,36 @@ public class UserController {
             : ResponseEntity.notFound().build();
     }
 
+    @PutMapping("/{userId}")
+    public ResponseEntity<User> changeUser(@AuthenticationPrincipal User user, @PathVariable UUID userId, @RequestBody User changes) {
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        if (!user.getId().equals(userId) && user.getRole() != UserRole.Admin)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
+        Optional<User> fetchedUser = userService.get(userId);
+        if(fetchedUser.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
+        User foundUser = fetchedUser.get(); 
+
+        if(changes.getPassword() == null)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+        if(changes.getUsername() == null)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+        var hashedPassword = passwordEncoder.encode(changes.getPassword());
+
+        try {
+            User updated = userService.updateUsername(foundUser, changes.getUsername());
+            updated = userService.updatePassword(foundUser, hashedPassword); 
+
+            updated.eraseCredentials();
+            return ResponseEntity.ok(updated);
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
 }
