@@ -1,8 +1,10 @@
 package is.hi.hbv501g2026hteam2.playwright.services;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import is.hi.hbv501g2026hteam2.playwright.dto.PlaylistRequest;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Playlist;
@@ -16,9 +18,9 @@ public interface PlaylistService {
 
     Optional<Playlist> get(UUID id);
 
-    Set<Playlist> getFromUser(User user);
+    Page<Playlist> getFromUser(User user, Pageable pageable);
 
-    Set<Playlist> getContainingTrack(UUID trackId);
+    Page<Playlist> getContainingTrack(UUID trackId, Pageable pageable);
 
     Playlist update(Playlist playlist, PlaylistRequest request);
 

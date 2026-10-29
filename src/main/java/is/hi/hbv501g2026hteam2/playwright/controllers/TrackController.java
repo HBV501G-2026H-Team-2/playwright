@@ -9,6 +9,8 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,7 +59,9 @@ public class TrackController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Track>> getTracks(@AuthenticationPrincipal User user, Pageable pageable) {
+    public ResponseEntity<Page<Track>> getTracks(
+            @AuthenticationPrincipal User user,
+            @PageableDefault(size = 50, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         if (user == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 

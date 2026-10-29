@@ -2,11 +2,11 @@ package is.hi.hbv501g2026hteam2.playwright.services.implementation;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Streamable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import is.hi.hbv501g2026hteam2.playwright.dto.PlaylistRequest;
@@ -53,12 +53,12 @@ public class PlaylistServiceImplementation implements PlaylistService {
         return repository.findById(id);
     }
 
-    public Set<Playlist> getFromUser(User user) {
-        return Streamable.of(repository.findByOwner(user)).toSet();
+    public Page<Playlist> getFromUser(User user, Pageable pageable) {
+        return repository.findByOwner(user, pageable);
     }
 
-    public Set<Playlist> getContainingTrack(UUID trackId) {
-        return Streamable.of(repository.findByTracks_Id(trackId)).toSet();
+    public Page<Playlist> getContainingTrack(UUID trackId, Pageable pageable) {
+        return repository.findByTracks_Id(trackId, pageable);
     }
 
     public Playlist update(Playlist playlist, PlaylistRequest request) {
