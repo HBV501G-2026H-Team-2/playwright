@@ -18,9 +18,9 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -102,6 +102,11 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<User> getMe(@AuthenticationPrincipal User user) {
+        return getUser(user, user.getId());
+    }
+
     @GetMapping("/{userId}")
     public ResponseEntity<User> getUser(@AuthenticationPrincipal User user, @PathVariable UUID userId) {
         if (user == null)
@@ -134,6 +139,11 @@ public class UserController {
             .orElse(ResponseEntity.notFound().build());
     }
 
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMe(@AuthenticationPrincipal User user, HttpServletRequest request) {
+        return deleteUser(user, user.getId(), request);
+    }
+
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(@AuthenticationPrincipal User user, @PathVariable UUID userId, HttpServletRequest request) {
         if (user == null)
@@ -156,7 +166,12 @@ public class UserController {
             : ResponseEntity.notFound().build();
     }
 
-    @PutMapping("/{userId}")
+    @PatchMapping("/me")
+    public ResponseEntity<User> changeMe(@AuthenticationPrincipal User user, @RequestBody User changes) {
+        return changeUser(user, user.getId(), changes);
+    }
+
+    @PatchMapping("/{userId}")
     public ResponseEntity<User> changeUser(@AuthenticationPrincipal User user, @PathVariable UUID userId, @RequestBody User changes) {
         if (user == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -168,7 +183,7 @@ public class UserController {
         if(fetchedUser.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
-        User foundUser = fetchedUser.get(); 
+        User foundUser = fetchedUser.get();
 
         if(changes.getPassword() == null)
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -180,7 +195,7 @@ public class UserController {
 
         try {
             User updated = userService.updateUsername(foundUser, changes.getUsername());
-            updated = userService.updatePassword(foundUser, hashedPassword); 
+            updated = userService.updatePassword(foundUser, hashedPassword);
 
             updated.eraseCredentials();
             return ResponseEntity.ok(updated);
