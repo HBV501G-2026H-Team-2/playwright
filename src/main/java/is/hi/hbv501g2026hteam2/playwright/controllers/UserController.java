@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import is.hi.hbv501g2026hteam2.playwright.dto.UserRequest;
+import is.hi.hbv501g2026hteam2.playwright.dto.UserResponse;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
 import is.hi.hbv501g2026hteam2.playwright.persistence.enums.UserRole;
 import is.hi.hbv501g2026hteam2.playwright.services.UserService;
@@ -50,26 +51,26 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> createUser(@RequestBody UserRequest request) {
+    public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest request) {
         try {
             User savedUser = userService.register(request, UserRole.User);
             savedUser.eraseCredentials();
 
             URI location = URI.create("/api/users/" + savedUser.getId());
-            return ResponseEntity.created(location).body(savedUser);
+            return ResponseEntity.created(location).body(new UserResponse(savedUser));
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 
     @PostMapping("/admin/register")
-    public ResponseEntity<User> createAdmin(@RequestBody UserRequest request) {
+    public ResponseEntity<UserResponse> createAdmin(@RequestBody UserRequest request) {
         try {
             User savedUser = userService.register(request, UserRole.Admin);
             savedUser.eraseCredentials();
 
             URI location = URI.create("/api/users/" + savedUser.getId());
-            return ResponseEntity.created(location).body(savedUser);
+            return ResponseEntity.created(location).body(new UserResponse(savedUser));
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
@@ -92,12 +93,12 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<User> getMe(@AuthenticationPrincipal User user) {
+    public ResponseEntity<UserResponse> getMe(@AuthenticationPrincipal User user) {
         return getUser(user, user.getId());
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<User> getUser(@AuthenticationPrincipal User user, @PathVariable UUID userId) {
+    public ResponseEntity<UserResponse> getUser(@AuthenticationPrincipal User user, @PathVariable UUID userId) {
         Optional<User> foundUserOpt = userService.get(user, userId);
         if (foundUserOpt.isEmpty())
             return ResponseEntity.notFound().build();
@@ -105,11 +106,11 @@ public class UserController {
         User foundUser = foundUserOpt.get();
         foundUser.eraseCredentials();
 
-        return ResponseEntity.ok(foundUser);
+        return ResponseEntity.ok(new UserResponse(foundUser));
     }
 
     @GetMapping
-    public ResponseEntity<User> getUserByUsername(@AuthenticationPrincipal User user, @RequestParam String username) {
+    public ResponseEntity<UserResponse> getUserByUsername(@AuthenticationPrincipal User user, @RequestParam String username) {
         Optional<User> foundUserOpt = userService.getByUsername(user, username);
         if (foundUserOpt.isEmpty())
             return ResponseEntity.notFound().build();
@@ -117,7 +118,7 @@ public class UserController {
         User foundUser = foundUserOpt.get();
         foundUser.eraseCredentials();
 
-        return ResponseEntity.ok(foundUser);
+        return ResponseEntity.ok(new UserResponse(foundUser));
     }
 
     @DeleteMapping("/me")
@@ -142,12 +143,12 @@ public class UserController {
     }
 
     @PatchMapping("/me")
-    public ResponseEntity<User> changeMe(@AuthenticationPrincipal User user, @RequestBody UserRequest request) {
+    public ResponseEntity<UserResponse> changeMe(@AuthenticationPrincipal User user, @RequestBody UserRequest request) {
         return changeUser(user, user.getId(), request);
     }
 
     @PatchMapping("/{userId}")
-    public ResponseEntity<User> changeUser(@AuthenticationPrincipal User user, @PathVariable UUID userId, @RequestBody UserRequest request) {
+    public ResponseEntity<UserResponse> changeUser(@AuthenticationPrincipal User user, @PathVariable UUID userId, @RequestBody UserRequest request) {
         try {
             Optional<User> updatedUserOpt = userService.update(user, userId, request);
             if (updatedUserOpt.isEmpty())
@@ -156,7 +157,7 @@ public class UserController {
             User updatedUser = updatedUserOpt.get();
             updatedUser.eraseCredentials();
 
-            return ResponseEntity.ok(updatedUser);
+            return ResponseEntity.ok(new UserResponse(updatedUser));
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }

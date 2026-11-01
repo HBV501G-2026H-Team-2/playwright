@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import is.hi.hbv501g2026hteam2.playwright.dto.TrackResponse;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
 import is.hi.hbv501g2026hteam2.playwright.services.TrackService;
@@ -39,7 +40,7 @@ public class TrackController {
     }
 
     @PostMapping
-    public ResponseEntity<Track> uploadTrack(
+    public ResponseEntity<TrackResponse> uploadTrack(
             @AuthenticationPrincipal User user,
             @RequestParam("file") MultipartFile file) {
         if (file.isEmpty())
@@ -48,27 +49,27 @@ public class TrackController {
         try {
             Track track = trackService.store(user, file.getOriginalFilename(), file.getInputStream());
             URI location = URI.create("/api/tracks/" + track.getId().toString());
-            return ResponseEntity.created(location).body(track);
+            return ResponseEntity.created(location).body(new TrackResponse(track));
         } catch (IOException e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @GetMapping
-    public ResponseEntity<Page<Track>> getTracks(
+    public ResponseEntity<Page<TrackResponse>> getTracks(
             @AuthenticationPrincipal User user,
             @PageableDefault(size = 50, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         Page<Track> tracks = trackService.getAll(user, pageable);
-        return ResponseEntity.ok(tracks);
+        return ResponseEntity.ok(tracks.map(track -> new TrackResponse(track)));
     }
 
     @GetMapping("/{trackId}")
-    public ResponseEntity<Track> getTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
+    public ResponseEntity<TrackResponse> getTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
         Optional<Track> track = trackService.get(user, trackId);
         if (track.isEmpty())
             return ResponseEntity.notFound().build();
 
-        return ResponseEntity.ok(track.get());
+        return ResponseEntity.ok(new TrackResponse(track.get()));
     }
 
     @GetMapping("/{trackId}/file")
