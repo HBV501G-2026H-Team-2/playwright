@@ -109,12 +109,6 @@ public class UserController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<User> getUser(@AuthenticationPrincipal User user, @PathVariable UUID userId) {
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
-        if (!user.getId().equals(userId) && user.getRole() != UserRole.Admin)
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-
         return userService.get(userId)
             .map(foundUser -> {
                 foundUser.eraseCredentials();
@@ -125,12 +119,6 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<User> getUserByUsername(@AuthenticationPrincipal User user, @RequestParam String username) {
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
-        if (!user.getUsername().equals(username) && user.getRole() != UserRole.Admin)
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-
         return userService.getByUsername(username)
             .map(foundUser -> {
                 foundUser.eraseCredentials();

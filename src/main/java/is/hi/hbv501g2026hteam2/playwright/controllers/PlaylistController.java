@@ -8,7 +8,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,7 +23,6 @@ import is.hi.hbv501g2026hteam2.playwright.dto.PlaylistRequest;
 import is.hi.hbv501g2026hteam2.playwright.dto.PlaylistResponse;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Playlist;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
-import is.hi.hbv501g2026hteam2.playwright.persistence.enums.UserRole;
 import is.hi.hbv501g2026hteam2.playwright.services.PlaylistService;
 import jakarta.validation.Valid;
 
@@ -42,11 +40,7 @@ public class PlaylistController {
     public ResponseEntity<PlaylistResponse> createPlaylist(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody PlaylistRequest request) {
-        if (user == null || user.getRole() != UserRole.User)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         Playlist playlist = playlistService.create(user, request);
-
         URI location = URI.create("/api/playlists/" + playlist.getId().toString());
         return ResponseEntity.created(location).body(new PlaylistResponse(playlist));
     }
@@ -55,18 +49,12 @@ public class PlaylistController {
     public ResponseEntity<Page<PlaylistResponse>> getPlaylists(
             @AuthenticationPrincipal User user,
             @PageableDefault(size = 50, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         Page<Playlist> playlists = playlistService.getFromUser(user, pageable);
         return ResponseEntity.ok(playlists.map(playlist -> new PlaylistResponse(playlist)));
     }
 
     @GetMapping("/{playlistId}")
     public ResponseEntity<PlaylistResponse> getPlaylist(@AuthenticationPrincipal User user, @PathVariable UUID playlistId) {
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         Optional<Playlist> playlistOpt = playlistService.get(playlistId);
         if (playlistOpt.isEmpty())
             return ResponseEntity.notFound().build();
@@ -83,9 +71,6 @@ public class PlaylistController {
             @AuthenticationPrincipal User user,
             @PathVariable UUID playlistId,
             @Valid @RequestBody PlaylistRequest request) {
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         Optional<Playlist> playlistOpt = playlistService.get(playlistId);
         if (playlistOpt.isEmpty())
             return ResponseEntity.notFound().build();
@@ -101,9 +86,6 @@ public class PlaylistController {
 
     @DeleteMapping("/{playlistId}")
     public ResponseEntity<Void> deletePlaylist(@AuthenticationPrincipal User user, @PathVariable UUID playlistId) {
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         Optional<Playlist> playlistOpt = playlistService.get(playlistId);
         if (playlistOpt.isEmpty())
             return ResponseEntity.notFound().build();

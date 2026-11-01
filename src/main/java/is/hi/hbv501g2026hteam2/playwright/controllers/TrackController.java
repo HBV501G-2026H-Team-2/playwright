@@ -26,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
-import is.hi.hbv501g2026hteam2.playwright.persistence.enums.UserRole;
 import is.hi.hbv501g2026hteam2.playwright.services.TrackService;
 
 @RestController
@@ -43,9 +42,6 @@ public class TrackController {
     public ResponseEntity<Track> uploadTrack(
             @AuthenticationPrincipal User user,
             @RequestParam("file") MultipartFile file) {
-        if (user == null || user.getRole() != UserRole.User)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         if (file.isEmpty())
             return ResponseEntity.badRequest().body(null);
 
@@ -62,18 +58,12 @@ public class TrackController {
     public ResponseEntity<Page<Track>> getTracks(
             @AuthenticationPrincipal User user,
             @PageableDefault(size = 50, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         Page<Track> tracks = trackService.getFromUser(user, pageable);
         return ResponseEntity.ok(tracks);
     }
 
     @GetMapping("/{trackId}")
     public ResponseEntity<Track> getTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         Optional<Track> trackOpt = trackService.get(trackId);
         if (trackOpt.isEmpty())
             return ResponseEntity.notFound().build();
@@ -87,12 +77,6 @@ public class TrackController {
 
     @GetMapping("/{trackId}/file")
     public ResponseEntity<Resource> downloadTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
-        if (user.getRole() != UserRole.User)
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-
         Optional<Track> trackOpt = trackService.get(trackId);
         if (trackOpt.isEmpty())
             return ResponseEntity.notFound().build();
@@ -114,9 +98,6 @@ public class TrackController {
 
     @DeleteMapping(value = "/{trackId}")
     public ResponseEntity<Void> deleteTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         Optional<Track> trackOpt = trackService.get(trackId);
         if (trackOpt.isEmpty())
             return ResponseEntity.notFound().build();

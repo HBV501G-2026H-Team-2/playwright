@@ -5,11 +5,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.enums.UserRole;
 import jakarta.persistence.CascadeType;
@@ -33,14 +33,15 @@ public final class User implements UserDetails, CredentialsContainer {
     @Column(unique = true, nullable = false)
     private String username;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Column(nullable = false)
     private String password;
 
     private UserRole role;
 
+    @CreationTimestamp
     private Instant createdAt;
 
+    @UpdateTimestamp
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -74,7 +75,6 @@ public final class User implements UserDetails, CredentialsContainer {
     }
 
     public void setUsername(String username) {
-        this.updatedAt = Instant.now();
         this.username = username;
     }
 
@@ -84,7 +84,6 @@ public final class User implements UserDetails, CredentialsContainer {
     }
 
     public void setPassword(String password) {
-        this.updatedAt = Instant.now();
         this.password = password;
     }
 
