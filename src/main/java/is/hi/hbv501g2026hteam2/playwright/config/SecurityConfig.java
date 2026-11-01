@@ -24,9 +24,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-                        .requestMatchers("/api/users/admin/register").hasRole(UserRole.Admin.getAuthority())
-                        .requestMatchers("/api/users").hasRole(UserRole.Admin.getAuthority())
-                        .requestMatchers("/api/tracks", "/api/playlists").hasRole(UserRole.User.getAuthority())
+                        .requestMatchers("/api/users/admin/register").hasAuthority(UserRole.Admin.getAuthority())
+                        .requestMatchers("/api/users").hasAuthority(UserRole.Admin.getAuthority())
+                        .requestMatchers("/api/tracks", "/api/playlists").hasAuthority(UserRole.User.getAuthority())
                         .anyRequest().authenticated())
                 .logout(logout -> logout
                         .logoutUrl("/api/users/logout")

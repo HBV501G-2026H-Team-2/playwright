@@ -6,12 +6,12 @@ public enum UserRole implements GrantedAuthority {
 
     User {
         public String getAuthority() {
-            return "USER";
+            return "ROLE_USER";
         }
     },
     Admin {
         public String getAuthority() {
-            return "ADMIN";
+            return "ROLE_ADMIN";
         }
     },
 
