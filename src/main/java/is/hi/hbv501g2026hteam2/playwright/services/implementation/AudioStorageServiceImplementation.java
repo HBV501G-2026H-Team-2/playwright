@@ -25,9 +25,14 @@ import is.hi.hbv501g2026hteam2.playwright.services.AudioStorageService;
 @Service
 public class AudioStorageServiceImplementation implements AudioStorageService {
 
-    private final Path storageRoot = Path.of("storage");
+    private final Path storageRoot;
 
     public AudioStorageServiceImplementation() throws IOException {
+        this(Path.of("storage"));
+    }
+
+    public AudioStorageServiceImplementation(Path storageRoot) throws IOException {
+        this.storageRoot = storageRoot;
         Files.createDirectories(storageRoot);
     }
 
@@ -36,12 +41,10 @@ public class AudioStorageServiceImplementation implements AudioStorageService {
     }
 
     @Override
-    public Path addToStorage(UUID id, InputStream contents) throws IOException {
+    public void addToStorage(UUID id, InputStream contents) throws IOException {
         Path destination = resolveStoragePath(id);
 
         Files.copy(contents, destination, StandardCopyOption.REPLACE_EXISTING);
-
-        return destination;
     }
 
     @Override
