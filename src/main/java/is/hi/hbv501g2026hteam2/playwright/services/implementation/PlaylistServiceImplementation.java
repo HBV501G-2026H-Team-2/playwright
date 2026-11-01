@@ -77,14 +77,17 @@ public class PlaylistServiceImplementation implements PlaylistService {
 
         Playlist playlist = playlistOpt.get();
 
-        playlist.setName(request.getName());
+        if (request.getName() != null)
+            playlist.setName(request.getName());
 
-        List<Track> tracks = request.getTrackIds()
-                .stream()
-                .flatMap(trackId -> trackService.get(user, trackId).stream())
-                .toList();
+        if (request.getTrackIds() != null) {
+            List<Track> tracks = request.getTrackIds()
+                    .stream()
+                    .flatMap(trackId -> trackService.get(user, trackId).stream())
+                    .toList();
 
-        playlist.setTracks(tracks);
+            playlist.setTracks(tracks);
+        }
 
         return Optional.of(repository.save(playlist));
     }
