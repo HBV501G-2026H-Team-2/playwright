@@ -44,33 +44,34 @@ public class TrackServiceImplementation implements TrackService {
 
             return repository.save(track);
         } catch (IOException e) {
-            delete(track.getId());
+            delete(user, track.getId());
             throw new RuntimeException("could not store audio file", e);
         }
     }
 
     @Override
-    public boolean delete(UUID id) {
+    public boolean delete(User user, UUID id) {
+        Optional<Track> track = get(user, id);
+        if (track.isEmpty())
+            return false;
+
         try {
             audioStorageService.deleteFromStorage(id);
         } catch (IOException e) {
             // Ignore failed storage deletion, reap later
         }
 
-        if (!repository.existsById(id))
-            return false;
-
-        repository.deleteById(id);
+        repository.delete(track.get());
         return true;
     }
 
     @Override
-    public Optional<Track> get(UUID id) {
-        return repository.findById(id);
+    public Optional<Track> get(User user, UUID id) {
+        return repository.findById(id).filter(playlist -> playlist.isVisibleTo(user));
     }
 
     @Override
-    public Page<Track> getFromUser(User user, Pageable pageable) {
+    public Page<Track> getAll(User user, Pageable pageable) {
         return repository.findByOwner(user, pageable);
     }
 
@@ -80,14 +81,14 @@ public class TrackServiceImplementation implements TrackService {
     }
 
     @Override
-    public Track updateMetadata(Track track, TrackMetadata newMetadata) {
+    public Optional<Track> updateMetadata(User user, UUID id, TrackMetadata newMetadata) {
         return null;
     }
 
     @Override
-    public InputStream getFileContents(Track track) {
+    public InputStream getFileContents(UUID id) {
         try {
-            return audioStorageService.getFromStorage(track.getId());
+            return audioStorageService.getFromStorage(id);
         } catch (IOException e) {
             throw new RuntimeException("could not get file contents", e);
         }

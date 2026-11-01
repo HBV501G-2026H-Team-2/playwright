@@ -49,21 +49,17 @@ public class PlaylistController {
     public ResponseEntity<Page<PlaylistResponse>> getPlaylists(
             @AuthenticationPrincipal User user,
             @PageableDefault(size = 50, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<Playlist> playlists = playlistService.getFromUser(user, pageable);
+        Page<Playlist> playlists = playlistService.getAll(user, pageable);
         return ResponseEntity.ok(playlists.map(playlist -> new PlaylistResponse(playlist)));
     }
 
     @GetMapping("/{playlistId}")
     public ResponseEntity<PlaylistResponse> getPlaylist(@AuthenticationPrincipal User user, @PathVariable UUID playlistId) {
-        Optional<Playlist> playlistOpt = playlistService.get(playlistId);
-        if (playlistOpt.isEmpty())
+        Optional<Playlist> playlist = playlistService.get(user, playlistId);
+        if (playlist.isEmpty())
             return ResponseEntity.notFound().build();
 
-        Playlist playlist = playlistOpt.get();
-        if (!user.getId().equals(playlist.getOwner().getId()))
-            return ResponseEntity.notFound().build();
-
-        return ResponseEntity.ok(new PlaylistResponse(playlist));
+        return ResponseEntity.ok(new PlaylistResponse(playlist.get()));
     }
 
     @PatchMapping("/{playlistId}")
@@ -71,30 +67,17 @@ public class PlaylistController {
             @AuthenticationPrincipal User user,
             @PathVariable UUID playlistId,
             @Valid @RequestBody PlaylistRequest request) {
-        Optional<Playlist> playlistOpt = playlistService.get(playlistId);
-        if (playlistOpt.isEmpty())
+        Optional<Playlist> playlist = playlistService.update(user, playlistId, request);
+        if (playlist.isEmpty())
             return ResponseEntity.notFound().build();
 
-        Playlist playlist = playlistOpt.get();
-        if (!user.getId().equals(playlist.getOwner().getId()))
-            return ResponseEntity.notFound().build();
-
-        playlist = playlistService.update(playlist, request);
-
-        return ResponseEntity.ok(new PlaylistResponse(playlist));
+        return ResponseEntity.ok(new PlaylistResponse(playlist.get()));
     }
 
     @DeleteMapping("/{playlistId}")
     public ResponseEntity<Void> deletePlaylist(@AuthenticationPrincipal User user, @PathVariable UUID playlistId) {
-        Optional<Playlist> playlistOpt = playlistService.get(playlistId);
-        if (playlistOpt.isEmpty())
+        if (!playlistService.delete(user, playlistId))
             return ResponseEntity.notFound().build();
-
-        Playlist playlist = playlistOpt.get();
-        if (!user.getId().equals(playlist.getOwner().getId()))
-            return ResponseEntity.notFound().build();
-
-        playlistService.delete(playlist.getId());
 
         return ResponseEntity.noContent().build();
     }

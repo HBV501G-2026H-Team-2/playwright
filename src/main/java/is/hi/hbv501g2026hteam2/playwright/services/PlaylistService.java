@@ -14,14 +14,14 @@ public interface PlaylistService {
 
     Playlist create(User user, PlaylistRequest request);
 
-    boolean delete(UUID id);
+    boolean delete(User user, UUID id);
 
-    Optional<Playlist> get(UUID id);
+    Optional<Playlist> get(User user, UUID id);
 
-    Page<Playlist> getFromUser(User user, Pageable pageable);
+    Page<Playlist> getAll(User user, Pageable pageable);
 
-    Page<Playlist> getContainingTrack(UUID trackId, Pageable pageable);
+    Page<Playlist> getContainingTrack(User user, UUID trackId, Pageable pageable);
 
-    Playlist update(Playlist playlist, PlaylistRequest request);
+    Optional<Playlist> update(User user, UUID id, PlaylistRequest request);
 
 }

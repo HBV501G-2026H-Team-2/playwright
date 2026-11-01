@@ -44,6 +44,10 @@ public final class Track {
         this.metadata = metadata;
     }
 
+    public boolean isVisibleTo(User user) {
+        return user.isAdmin() || user.getId().equals(owner.getId());
+    }
+
     public UUID getId() {
         return id;
     }

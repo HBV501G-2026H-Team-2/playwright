@@ -46,6 +46,10 @@ public final class Playlist {
         this.tracks = tracks;
     }
 
+    public boolean isVisibleTo(User user) {
+        return user.isAdmin() || user.getId().equals(owner.getId());
+    }
+
     public UUID getId() {
         return id;
     }

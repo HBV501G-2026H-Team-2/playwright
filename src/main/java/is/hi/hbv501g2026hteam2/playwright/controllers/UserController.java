@@ -13,7 +13,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,6 +25,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import is.hi.hbv501g2026hteam2.playwright.dto.UserRequest;
+import is.hi.hbv501g2026hteam2.playwright.dto.UserResponse;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
 import is.hi.hbv501g2026hteam2.playwright.persistence.enums.UserRole;
 import is.hi.hbv501g2026hteam2.playwright.services.UserService;
@@ -38,60 +39,49 @@ import jakarta.servlet.http.HttpSession;
 public class UserController {
 
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     public UserController(
             UserService userService,
-            PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager) {
         this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        user.setRole(UserRole.User);
-
-        var hashedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(hashedPassword);
-
+    public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest request) {
         try {
-            User savedUser = userService.register(user);
+            User savedUser = userService.register(request, UserRole.User);
             savedUser.eraseCredentials();
 
             URI location = URI.create("/api/users/" + savedUser.getId());
-            return ResponseEntity.created(location).body(savedUser);
+            return ResponseEntity.created(location).body(new UserResponse(savedUser));
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 
     @PostMapping("/admin/register")
-    public ResponseEntity<User> createAdmin(@RequestBody User admin) {
-        admin.setRole(UserRole.Admin);
+    public ResponseEntity<UserResponse> createAdmin(@RequestBody UserRequest request) {
+        try {
+            User savedUser = userService.register(request, UserRole.Admin);
+            savedUser.eraseCredentials();
 
-        var hashedPassword = passwordEncoder.encode(admin.getPassword());
-        admin.setPassword(hashedPassword);
-
-        User savedAdmin = userService.register(admin);
-        savedAdmin.eraseCredentials();
-
-        URI location = URI.create("/api/users/" + savedAdmin.getId());
-        return ResponseEntity.created(location).body(savedAdmin);
+            URI location = URI.create("/api/users/" + savedUser.getId());
+            return ResponseEntity.created(location).body(new UserResponse(savedUser));
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Void> login(@RequestBody User user, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Void> login(@RequestBody UserRequest userRequest, HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                user.getUsername(),
-                user.getPassword()
-            )
-        );
+                UsernamePasswordAuthenticationToken.unauthenticated(
+                        userRequest.getUsername(),
+                        userRequest.getPassword()));
 
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authentication);
@@ -103,28 +93,32 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<User> getMe(@AuthenticationPrincipal User user) {
+    public ResponseEntity<UserResponse> getMe(@AuthenticationPrincipal User user) {
         return getUser(user, user.getId());
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<User> getUser(@AuthenticationPrincipal User user, @PathVariable UUID userId) {
-        return userService.get(userId)
-            .map(foundUser -> {
-                foundUser.eraseCredentials();
-                return ResponseEntity.ok(foundUser);
-            })
-            .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<UserResponse> getUser(@AuthenticationPrincipal User user, @PathVariable UUID userId) {
+        Optional<User> foundUserOpt = userService.get(user, userId);
+        if (foundUserOpt.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        User foundUser = foundUserOpt.get();
+        foundUser.eraseCredentials();
+
+        return ResponseEntity.ok(new UserResponse(foundUser));
     }
 
     @GetMapping
-    public ResponseEntity<User> getUserByUsername(@AuthenticationPrincipal User user, @RequestParam String username) {
-        return userService.getByUsername(username)
-            .map(foundUser -> {
-                foundUser.eraseCredentials();
-                return ResponseEntity.ok(foundUser);
-            })
-            .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<UserResponse> getUserByUsername(@AuthenticationPrincipal User user, @RequestParam String username) {
+        Optional<User> foundUserOpt = userService.getByUsername(user, username);
+        if (foundUserOpt.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        User foundUser = foundUserOpt.get();
+        foundUser.eraseCredentials();
+
+        return ResponseEntity.ok(new UserResponse(foundUser));
     }
 
     @DeleteMapping("/me")
@@ -134,13 +128,7 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(@AuthenticationPrincipal User user, @PathVariable UUID userId, HttpServletRequest request) {
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
-        if (!user.getId().equals(userId) && user.getRole() != UserRole.Admin)
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-
-        boolean wasDeleted = userService.delete(userId);
+        boolean wasDeleted = userService.delete(user, userId);
 
         if (wasDeleted && user.getId().equals(userId)) {
             HttpSession session = request.getSession(false);
@@ -155,38 +143,21 @@ public class UserController {
     }
 
     @PatchMapping("/me")
-    public ResponseEntity<User> changeMe(@AuthenticationPrincipal User user, @RequestBody User changes) {
-        return changeUser(user, user.getId(), changes);
+    public ResponseEntity<UserResponse> changeMe(@AuthenticationPrincipal User user, @RequestBody UserRequest request) {
+        return changeUser(user, user.getId(), request);
     }
 
     @PatchMapping("/{userId}")
-    public ResponseEntity<User> changeUser(@AuthenticationPrincipal User user, @PathVariable UUID userId, @RequestBody User changes) {
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
-        if (!user.getId().equals(userId) && user.getRole() != UserRole.Admin)
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-
-        Optional<User> fetchedUser = userService.get(userId);
-        if(fetchedUser.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-
-        User foundUser = fetchedUser.get();
-
-        if(changes.getPassword() == null)
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-
-        if(changes.getUsername() == null)
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-
-        var hashedPassword = passwordEncoder.encode(changes.getPassword());
-
+    public ResponseEntity<UserResponse> changeUser(@AuthenticationPrincipal User user, @PathVariable UUID userId, @RequestBody UserRequest request) {
         try {
-            User updated = userService.updateUsername(foundUser, changes.getUsername());
-            updated = userService.updatePassword(foundUser, hashedPassword);
+            Optional<User> updatedUserOpt = userService.update(user, userId, request);
+            if (updatedUserOpt.isEmpty())
+                return ResponseEntity.notFound().build();
 
-            updated.eraseCredentials();
-            return ResponseEntity.ok(updated);
+            User updatedUser = updatedUserOpt.get();
+            updatedUser.eraseCredentials();
+
+            return ResponseEntity.ok(new UserResponse(updatedUser));
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }

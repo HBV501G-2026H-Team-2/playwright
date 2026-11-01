@@ -29,11 +29,11 @@ public class PlaylistServiceImplementation implements PlaylistService {
         this.trackService = trackService;
     }
 
+    @Override
     public Playlist create(User user, PlaylistRequest request) {
         List<Track> tracks = request.getTrackIds()
                 .stream()
-                .map(id -> trackService.get(id).orElse(null))
-                .filter(track -> track != null && user.getId().equals(track.getOwner().getId()))
+                .flatMap(id -> trackService.get(user, id).stream())
                 .toList();
 
         Playlist playlist = new Playlist(user, request.getName(), tracks);
@@ -41,38 +41,52 @@ public class PlaylistServiceImplementation implements PlaylistService {
         return repository.save(playlist);
     }
 
-    public boolean delete(UUID id) {
-        if (!repository.existsById(id))
+    @Override
+    public boolean delete(User user, UUID id) {
+        Optional<Playlist> playlist = get(user, id);
+        if (playlist.isEmpty())
             return false;
 
-        repository.deleteById(id);
+        repository.delete(playlist.get());
         return true;
     }
 
-    public Optional<Playlist> get(UUID id) {
-        return repository.findById(id);
+    @Override
+    public Optional<Playlist> get(User user, UUID id) {
+        return repository.findById(id).filter(playlist -> playlist.isVisibleTo(user));
     }
 
-    public Page<Playlist> getFromUser(User user, Pageable pageable) {
+    @Override
+    public Page<Playlist> getAll(User user, Pageable pageable) {
         return repository.findByOwner(user, pageable);
     }
 
-    public Page<Playlist> getContainingTrack(UUID trackId, Pageable pageable) {
+    @Override
+    public Page<Playlist> getContainingTrack(User user, UUID trackId, Pageable pageable) {
+        if (trackService.get(user, trackId).isEmpty())
+            return Page.empty();
+
         return repository.findByTracks_Id(trackId, pageable);
     }
 
-    public Playlist update(Playlist playlist, PlaylistRequest request) {
+    @Override
+    public Optional<Playlist> update(User user, UUID id, PlaylistRequest request) {
+        Optional<Playlist> playlistOpt = get(user, id);
+        if (playlistOpt.isEmpty())
+            return Optional.empty();
+
+        Playlist playlist = playlistOpt.get();
+
         playlist.setName(request.getName());
 
         List<Track> tracks = request.getTrackIds()
                 .stream()
-                .map(id -> trackService.get(id).orElse(null))
-                .filter(track -> track != null && playlist.getOwner().getId().equals(track.getOwner().getId()))
+                .flatMap(trackId -> trackService.get(user, trackId).stream())
                 .toList();
 
         playlist.setTracks(tracks);
 
-        return repository.save(playlist);
+        return Optional.of(repository.save(playlist));
     }
 
 }
