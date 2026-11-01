@@ -1,6 +1,7 @@
 package is.hi.hbv501g2026hteam2.playwright.controllers;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import is.hi.hbv501g2026hteam2.playwright.dto.PlaylistRequest;
 import is.hi.hbv501g2026hteam2.playwright.dto.PlaylistResponse;
+import is.hi.hbv501g2026hteam2.playwright.dto.TrackResponse;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Playlist;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
 import is.hi.hbv501g2026hteam2.playwright.services.PlaylistService;
@@ -60,6 +62,18 @@ public class PlaylistController {
             return ResponseEntity.notFound().build();
 
         return ResponseEntity.ok(new PlaylistResponse(playlist.get()));
+    }
+
+    @GetMapping("/{playlistId}/tracks")
+    public ResponseEntity<List<TrackResponse>> getPlaylistTracks(@AuthenticationPrincipal User user, @PathVariable UUID playlistId) {
+        Optional<Playlist> playlist = playlistService.get(user, playlistId);
+        if (playlist.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        List<TrackResponse> response = playlist.get().getTracks()
+                .stream().map(track -> new TrackResponse(track)).toList();
+
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{playlistId}")
