@@ -58,37 +58,29 @@ public class TrackController {
     public ResponseEntity<Page<Track>> getTracks(
             @AuthenticationPrincipal User user,
             @PageableDefault(size = 50, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<Track> tracks = trackService.getFromUser(user, pageable);
+        Page<Track> tracks = trackService.getAll(user, pageable);
         return ResponseEntity.ok(tracks);
     }
 
     @GetMapping("/{trackId}")
     public ResponseEntity<Track> getTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
-        Optional<Track> trackOpt = trackService.get(trackId);
-        if (trackOpt.isEmpty())
+        Optional<Track> track = trackService.get(user, trackId);
+        if (track.isEmpty())
             return ResponseEntity.notFound().build();
 
-        Track track = trackOpt.get();
-        if (!user.getId().equals(track.getOwner().getId()))
-            return ResponseEntity.notFound().build();
-
-        return ResponseEntity.ok(track);
+        return ResponseEntity.ok(track.get());
     }
 
     @GetMapping("/{trackId}/file")
     public ResponseEntity<Resource> downloadTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
-        Optional<Track> trackOpt = trackService.get(trackId);
-        if (trackOpt.isEmpty())
-            return ResponseEntity.notFound().build();
-
-        Track track = trackOpt.get();
-        if (!user.getId().equals(track.getOwner().getId()))
+        Optional<Track> track = trackService.get(user, trackId);
+        if (track.isEmpty())
             return ResponseEntity.notFound().build();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + track.getFilename() + "\"");
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + track.get().getFilename() + "\"");
 
-        var resource = new InputStreamResource(trackService.getFileContents(track));
+        var resource = new InputStreamResource(trackService.getFileContents(trackId));
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -98,15 +90,8 @@ public class TrackController {
 
     @DeleteMapping(value = "/{trackId}")
     public ResponseEntity<Void> deleteTrack(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
-        Optional<Track> trackOpt = trackService.get(trackId);
-        if (trackOpt.isEmpty())
+        if (!trackService.delete(user, trackId))
             return ResponseEntity.notFound().build();
-
-        Track track = trackOpt.get();
-        if (!user.getId().equals(track.getOwner().getId()))
-            return ResponseEntity.notFound().build();
-
-        trackService.delete(track.getId());
 
         return ResponseEntity.noContent().build();
     }

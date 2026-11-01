@@ -5,20 +5,20 @@ import java.util.UUID;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+import is.hi.hbv501g2026hteam2.playwright.dto.UserRequest;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
+import is.hi.hbv501g2026hteam2.playwright.persistence.enums.UserRole;
 
 public interface UserService extends UserDetailsService {
 
-    User register(User user);
+    User register(UserRequest request, UserRole role);
 
-    boolean delete(UUID id);
+    boolean delete(User user, UUID id);
 
-    Optional<User> get(UUID id);
+    Optional<User> get(User user, UUID id);
 
-    Optional<User> getByUsername(String username);
+    Optional<User> getByUsername(User user, String username);
 
-    User updateUsername(User user, String newUsername);
-
-    User updatePassword(User user, String newPassword);
+    Optional<User> update(User user, UUID id, UserRequest request);
 
 }

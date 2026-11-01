@@ -51,7 +51,6 @@ public final class User implements UserDetails, CredentialsContainer {
     private Collection<Playlist> playlists;
 
     public User() {
-        this.createdAt = this.updatedAt = Instant.now();
     }
 
     public User(String username, String password) {
@@ -63,6 +62,10 @@ public final class User implements UserDetails, CredentialsContainer {
         this.username = username;
         this.password = password;
         this.role = role;
+    }
+
+    public boolean isAdmin() {
+        return role == UserRole.Admin;
     }
 
     public UUID getId() {

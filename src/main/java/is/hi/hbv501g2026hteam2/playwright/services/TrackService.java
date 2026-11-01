@@ -15,16 +15,16 @@ public interface TrackService {
 
     Track store(User user, String filename, InputStream contents);
 
-    boolean delete(UUID id);
+    boolean delete(User user, UUID id);
 
-    Optional<Track> get(UUID id);
+    Optional<Track> get(User user, UUID id);
 
-    Page<Track> getFromUser(User user, Pageable pageable);
+    Page<Track> getAll(User user, Pageable pageable);
 
     Page<Track> getFromUserWithMetadata(User user, TrackMetadata metadata, Pageable pageable);
 
-    Track updateMetadata(Track track, TrackMetadata newMetadata);
+    Optional<Track> updateMetadata(User user, UUID id, TrackMetadata newMetadata);
 
-    InputStream getFileContents(Track track);
+    InputStream getFileContents(UUID id);
 
 }
