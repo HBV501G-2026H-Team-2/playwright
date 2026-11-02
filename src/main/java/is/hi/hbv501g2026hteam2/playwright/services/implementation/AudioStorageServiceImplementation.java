@@ -18,11 +18,13 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.springframework.stereotype.Service;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
 import is.hi.hbv501g2026hteam2.playwright.services.AudioStorageService;
 
 @Service
+@ConditionalOnProperty(prefix = "playwright.storage", name = "backend", havingValue = "local", matchIfMissing = true)
 public class AudioStorageServiceImplementation implements AudioStorageService {
 
     private final Path storageRoot;
