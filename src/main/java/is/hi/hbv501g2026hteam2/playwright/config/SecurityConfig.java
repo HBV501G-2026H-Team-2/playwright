@@ -24,19 +24,17 @@ public class SecurityConfig {
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-                        .requestMatchers("/api/users/admin/register").hasRole(UserRole.Admin.getAuthority())
-                        .requestMatchers("/api/users").hasRole(UserRole.Admin.getAuthority())
-                        .requestMatchers("/api/tracks", "/api/playlists").hasRole(UserRole.User.getAuthority())
+                        .requestMatchers("/api/users/admin/register").hasAuthority(UserRole.Admin.getAuthority())
+                        .requestMatchers("/api/users").hasAuthority(UserRole.Admin.getAuthority())
+                        .requestMatchers("/api/tracks", "/api/playlists").hasAuthority(UserRole.User.getAuthority())
                         .anyRequest().authenticated())
                 .logout(logout -> logout
                         .logoutUrl("/api/users/logout")
-                        .logoutSuccessHandler((request, response, authentication) ->
-                            response.setStatus(HttpServletResponse.SC_NO_CONTENT)
-                        )
+                        .logoutSuccessHandler((request, response, authentication) -> response
+                                .setStatus(HttpServletResponse.SC_NO_CONTENT))
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID")
-                );
+                        .deleteCookies("JSESSIONID"));
 
         return http.build();
     }
