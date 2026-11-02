@@ -9,7 +9,7 @@ import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
 
 public interface AudioStorageService {
 
-    Path addToStorage(UUID id, InputStream contents) throws IOException;
+    void addToStorage(UUID id, InputStream contents) throws IOException;
 
     boolean deleteFromStorage(UUID id) throws IOException;
 

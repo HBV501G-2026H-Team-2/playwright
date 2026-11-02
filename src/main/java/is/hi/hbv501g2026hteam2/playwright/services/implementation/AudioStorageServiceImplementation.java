@@ -18,16 +18,23 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.springframework.stereotype.Service;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
 import is.hi.hbv501g2026hteam2.playwright.services.AudioStorageService;
 
 @Service
+@ConditionalOnProperty(prefix = "playwright.storage", name = "backend", havingValue = "local", matchIfMissing = true)
 public class AudioStorageServiceImplementation implements AudioStorageService {
 
-    private final Path storageRoot = Path.of("storage");
+    private final Path storageRoot;
 
     public AudioStorageServiceImplementation() throws IOException {
+        this(Path.of("storage"));
+    }
+
+    public AudioStorageServiceImplementation(Path storageRoot) throws IOException {
+        this.storageRoot = storageRoot;
         Files.createDirectories(storageRoot);
     }
 
@@ -36,12 +43,10 @@ public class AudioStorageServiceImplementation implements AudioStorageService {
     }
 
     @Override
-    public Path addToStorage(UUID id, InputStream contents) throws IOException {
+    public void addToStorage(UUID id, InputStream contents) throws IOException {
         Path destination = resolveStoragePath(id);
 
         Files.copy(contents, destination, StandardCopyOption.REPLACE_EXISTING);
-
-        return destination;
     }
 
     @Override
