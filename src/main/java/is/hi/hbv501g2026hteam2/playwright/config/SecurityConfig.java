@@ -1,5 +1,6 @@
 package is.hi.hbv501g2026hteam2.playwright.config;
 
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,7 +11,9 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
 import is.hi.hbv501g2026hteam2.playwright.persistence.enums.UserRole;
+import is.hi.hbv501g2026hteam2.playwright.persistence.repositories.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
@@ -49,6 +52,17 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() throws Exception {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    @Bean
+    public CommandLineRunner bootstrapAdmin(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        return args -> {
+            // Insecure :)
+            if (userRepository.findByUsername("admin").isEmpty()) {
+                User admin = new User("admin", passwordEncoder.encode("passwordbutsecure"), UserRole.Admin);
+                userRepository.save(admin);
+            }
+        };
     }
 
 }
