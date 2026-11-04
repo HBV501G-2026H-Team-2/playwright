@@ -17,6 +17,7 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
@@ -25,9 +26,10 @@ import is.hi.hbv501g2026hteam2.playwright.services.AudioStorageService;
 @Service
 public class AudioStorageServiceImplementation implements AudioStorageService {
 
-    private final Path storageRoot = Path.of("storage");
+    private Path storageRoot;
 
-    public AudioStorageServiceImplementation() throws IOException {
+    public AudioStorageServiceImplementation(@Value("${playwright.storage-root.path}") Path storageRoot) throws IOException {
+        this.storageRoot = storageRoot;
         Files.createDirectories(storageRoot);
     }
 

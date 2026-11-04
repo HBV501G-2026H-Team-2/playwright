@@ -36,5 +36,5 @@ build/
 .envrc
 .direnv
 
-
 storage/
+data/
