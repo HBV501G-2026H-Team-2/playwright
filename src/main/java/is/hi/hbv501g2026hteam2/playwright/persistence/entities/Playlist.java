@@ -32,7 +32,7 @@ public final class Playlist {
     @Column(nullable = false)
     private String name;
 
-    @ManyToMany(fetch = FetchType.EAGER) // TODO: Fix issues with LAZY
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "playlist_tracks", joinColumns = @JoinColumn(name = "playlist_id"), inverseJoinColumns = @JoinColumn(name = "track_id"))
     @OrderColumn(nullable = false)
     private List<Track> tracks;
