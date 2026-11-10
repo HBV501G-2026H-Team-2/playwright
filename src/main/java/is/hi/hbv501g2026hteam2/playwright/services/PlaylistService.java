@@ -18,7 +18,7 @@ public interface PlaylistService {
 
     Optional<Playlist> get(User user, UUID id);
 
-    Page<Playlist> getAll(User user, Pageable pageable);
+    Page<Playlist> getAll(User user, String name, Pageable pageable);
 
     Page<Playlist> getContainingTrack(User user, UUID trackId, Pageable pageable);
 

@@ -19,9 +19,7 @@ public interface TrackService {
 
     Optional<Track> get(User user, UUID id);
 
-    Page<Track> getAll(User user, Pageable pageable);
-
-    Page<Track> getFromUserWithMetadata(User user, TrackMetadata metadata, Pageable pageable);
+    Page<Track> getAll(User user, TrackMetadata metadata, Pageable pageable);
 
     Optional<Track> updateMetadata(User user, UUID id, TrackMetadata newMetadata);
 

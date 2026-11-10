@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import is.hi.hbv501g2026hteam2.playwright.dto.PlaylistRequest;
@@ -50,8 +51,9 @@ public class PlaylistController {
     @GetMapping
     public ResponseEntity<Page<PlaylistResponse>> getPlaylists(
             @AuthenticationPrincipal User user,
+            @RequestParam(required = false) String name,
             @PageableDefault(size = 50, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<Playlist> playlists = playlistService.getAll(user, pageable);
+        Page<Playlist> playlists = playlistService.getAll(user, name, pageable);
         return ResponseEntity.ok(playlists.map(playlist -> new PlaylistResponse(playlist)));
     }
 

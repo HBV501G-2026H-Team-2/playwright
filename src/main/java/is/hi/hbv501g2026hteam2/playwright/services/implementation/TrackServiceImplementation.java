@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -71,13 +72,12 @@ public class TrackServiceImplementation implements TrackService {
     }
 
     @Override
-    public Page<Track> getAll(User user, Pageable pageable) {
-        return repository.findByOwner(user, pageable);
-    }
+    public Page<Track> getAll(User user, TrackMetadata metadata, Pageable pageable) {
+        if (user == null)
+            return Page.empty();
 
-    @Override
-    public Page<Track> getFromUserWithMetadata(User user, TrackMetadata metadata, Pageable pageable) {
-        return null;
+        Example<Track> probe = Example.of(new Track(user, null, metadata));
+        return repository.findAll(probe, pageable);
     }
 
     @Override

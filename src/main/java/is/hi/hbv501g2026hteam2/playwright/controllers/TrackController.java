@@ -60,9 +60,9 @@ public class TrackController {
 
     @GetMapping
     public ResponseEntity<Page<TrackResponse>> getTracks(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal User user, TrackMetadata metadataFilter,
             @PageableDefault(size = 50, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<Track> tracks = trackService.getAll(user, pageable);
+        Page<Track> tracks = trackService.getAll(user, metadataFilter, pageable);
         return ResponseEntity.ok(tracks.map(track -> new TrackResponse(track)));
     }
 
