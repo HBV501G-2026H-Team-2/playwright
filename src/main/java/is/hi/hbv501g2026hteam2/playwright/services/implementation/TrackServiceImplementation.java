@@ -82,7 +82,32 @@ public class TrackServiceImplementation implements TrackService {
 
     @Override
     public Optional<Track> updateMetadata(User user, UUID id, TrackMetadata newMetadata) {
-        return null;
+        Optional<Track> trackOpt = get(user, id);
+        if (trackOpt.isEmpty())
+            return Optional.empty();
+
+        Track track = trackOpt.get();
+        TrackMetadata metadata = track.getMetadata();
+
+        // Note: duration is excluded since it depends on the actual file contents
+        if (newMetadata.getTitle() != null)
+            metadata.setTitle(newMetadata.getTitle());
+        if (newMetadata.getArtist() != null)
+            metadata.setArtist(newMetadata.getArtist());
+        if (newMetadata.getGenre() != null)
+            metadata.setGenre(newMetadata.getGenre());
+        if (newMetadata.getTitle() != null)
+            metadata.setAlbumName(newMetadata.getAlbumName());
+        if (newMetadata.getAlbumName() != null)
+            metadata.setTitle(newMetadata.getTitle());
+        if (newMetadata.getComment() != null)
+            metadata.setComment(newMetadata.getComment());
+        if (newMetadata.getYear() != null)
+            metadata.setYear(newMetadata.getYear());
+
+        track.setMetadata(metadata);
+
+        return Optional.of(repository.save(track));
     }
 
     @Override

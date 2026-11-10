@@ -17,8 +17,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import is.hi.hbv501g2026hteam2.playwright.dto.TrackResponse;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
+import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
 import is.hi.hbv501g2026hteam2.playwright.services.TrackService;
 
@@ -70,6 +73,24 @@ public class TrackController {
             return ResponseEntity.notFound().build();
 
         return ResponseEntity.ok(new TrackResponse(track.get()));
+    }
+
+    @GetMapping("/{trackId}/metadata")
+    public ResponseEntity<TrackMetadata> getTrackMetadata(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
+        Optional<Track> track = trackService.get(user, trackId);
+        if (track.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        return ResponseEntity.ok(track.get().getMetadata());
+    }
+
+    @PatchMapping("/{trackId}/metadata")
+    public ResponseEntity<TrackMetadata> updateTrackMetadata(@AuthenticationPrincipal User user, @PathVariable UUID trackId, @RequestBody TrackMetadata metadata) {
+        Optional<Track> track = trackService.updateMetadata(user, trackId, metadata);
+        if (track.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        return ResponseEntity.ok(track.get().getMetadata());
     }
 
     @GetMapping("/{trackId}/file")
