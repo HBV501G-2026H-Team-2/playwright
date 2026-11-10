@@ -106,6 +106,11 @@ public class TrackServiceImplementation implements TrackService {
             metadata.setYear(newMetadata.getYear());
 
         track.setMetadata(metadata);
+        try {
+            audioStorageService.writeMetadata(id, metadata);
+        } catch (IOException e) {
+            // Ignore failed file update, defer to metadata in database
+        }
 
         return Optional.of(repository.save(track));
     }

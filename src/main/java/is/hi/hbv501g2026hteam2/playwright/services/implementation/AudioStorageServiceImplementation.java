@@ -12,6 +12,7 @@ import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.CannotWriteException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
@@ -59,28 +60,52 @@ public class AudioStorageServiceImplementation implements AudioStorageService {
 
             AudioFile audioFile = AudioFileIO.readMagic(storagePath.toFile());
 
-            Tag tag = audioFile.getTag();
             AudioHeader header = audioFile.getAudioHeader();
-
-            String title = tag != null ? tag.getFirst(FieldKey.TITLE) : "";
-            String artist = tag != null ? tag.getFirst(FieldKey.ARTIST) : "";
-            String genre = tag != null ? tag.getFirst(FieldKey.GENRE) : "";
-            String album = tag != null ? tag.getFirst(FieldKey.ALBUM) : "";
-            String year = tag != null ? tag.getFirst(FieldKey.YEAR) : "";
-            String comment = tag != null ? tag.getFirst(FieldKey.COMMENT) : "";
-
             Duration duration = Duration.ofSeconds(header.getTrackLength());
 
-            return new TrackMetadata(
-                    title,
-                    artist,
-                    genre,
-                    album,
-                    year,
-                    duration,
-                    comment);
+            Tag tag = audioFile.getTag();
+            if (tag == null)
+                return new TrackMetadata("", "", "", "", "", duration, "");
+
+            String title = tag.getFirst(FieldKey.TITLE);
+            String artist = tag.getFirst(FieldKey.ARTIST);
+            String genre = tag.getFirst(FieldKey.GENRE);
+            String album = tag.getFirst(FieldKey.ALBUM);
+            String year = tag.getFirst(FieldKey.YEAR);
+            String comment = tag.getFirst(FieldKey.COMMENT);
+
+            return new TrackMetadata(title, artist, genre, album, year, duration, comment);
         } catch (CannotReadException e) {
             throw new IOException("Unable to read track file in storage: " + id.toString(), e);
+        } catch (ReadOnlyFileException e) {
+            throw new IOException("Encountered read-only track file in storage: " + id.toString(), e);
+        } catch (TagException e) {
+            throw new IOException("Encountered corrupted track file in storage: " + id.toString());
+        } catch (InvalidAudioFrameException e) {
+            throw new IOException("Encountered corrupted track file in storage: " + id.toString());
+        }
+    }
+
+    @Override
+    public void writeMetadata(UUID id, TrackMetadata metadata) throws IOException {
+        try {
+            Path storagePath = resolveStoragePath(id);
+
+            AudioFile audioFile = AudioFileIO.readMagic(storagePath.toFile());
+            Tag tag = audioFile.getTagOrCreateAndSetDefault();
+
+            tag.setField(FieldKey.TITLE, metadata.getTitle());
+            tag.setField(FieldKey.ARTIST, metadata.getArtist());
+            tag.setField(FieldKey.GENRE, metadata.getGenre());
+            tag.setField(FieldKey.ALBUM, metadata.getAlbumName());
+            tag.setField(FieldKey.YEAR, metadata.getYear());
+            tag.setField(FieldKey.COMMENT, metadata.getComment());
+
+            audioFile.commit();
+        } catch (CannotReadException e) {
+            throw new IOException("Unable to read track file in storage: " + id.toString(), e);
+        } catch (CannotWriteException e) {
+            throw new IOException("Unable to write track file in storage: " + id.toString(), e);
         } catch (ReadOnlyFileException e) {
             throw new IOException("Encountered read-only track file in storage: " + id.toString(), e);
         } catch (TagException e) {

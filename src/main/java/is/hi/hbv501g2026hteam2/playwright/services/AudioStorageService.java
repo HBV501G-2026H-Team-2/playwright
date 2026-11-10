@@ -15,6 +15,8 @@ public interface AudioStorageService {
 
     TrackMetadata extractMetadata(UUID id) throws IOException;
 
+    void writeMetadata(UUID id, TrackMetadata metadata) throws IOException;
+
     InputStream getFromStorage(UUID id) throws IOException;
 
 }
