@@ -1,0 +1,17 @@
+services:
+    playwright:
+        build: .
+        image: playwright:local
+        container_name: playwright
+        restart: unless-stopped
+
+        ports:
+            - "127.0.0.1:18080:8080"
+
+        volumes:
+            - /srv/ssd/playwright/db:/data
+            - /srv/storage/playwright/audio:/storage
+
+        command:
+            - "--spring.datasource.url=jdbc:h2:file:/data/pw"
+            - "--playwright.storage-root.path=/storage"
