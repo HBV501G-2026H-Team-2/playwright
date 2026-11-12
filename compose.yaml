@@ -4,6 +4,11 @@ services:
         image: playwright:local
         container_name: playwright
         restart: unless-stopped
+        environment:
+            SERVER_FORWARD_HEADERS_STRATEGY: framework
+            SERVER_SERVLET_SESSION_COOKIE_SECURE: "true"
+            SERVER_SERVLET_SESSION_COOKIE_HTTP_ONLY: "true"
+            SERVER_SERVLET_SESSION_COOKIE_SAME_SITE: lax
 
         ports:
             - "127.0.0.1:18080:8080"
