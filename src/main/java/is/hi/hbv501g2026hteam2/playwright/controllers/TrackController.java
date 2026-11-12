@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 
 import is.hi.hbv501g2026hteam2.playwright.dto.TrackResponse;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
@@ -42,7 +43,7 @@ public class TrackController {
         this.trackService = trackService;
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TrackResponse> uploadTrack(
             @AuthenticationPrincipal User user,
             @RequestParam("file") MultipartFile file) {
@@ -76,7 +77,8 @@ public class TrackController {
     }
 
     @GetMapping("/{trackId}/metadata")
-    public ResponseEntity<TrackMetadata> getTrackMetadata(@AuthenticationPrincipal User user, @PathVariable UUID trackId) {
+    public ResponseEntity<TrackMetadata> getTrackMetadata(@AuthenticationPrincipal User user,
+            @PathVariable UUID trackId) {
         Optional<Track> track = trackService.get(user, trackId);
         if (track.isEmpty())
             return ResponseEntity.notFound().build();
@@ -85,7 +87,8 @@ public class TrackController {
     }
 
     @PatchMapping("/{trackId}/metadata")
-    public ResponseEntity<TrackMetadata> updateTrackMetadata(@AuthenticationPrincipal User user, @PathVariable UUID trackId, @RequestBody TrackMetadata metadata) {
+    public ResponseEntity<TrackMetadata> updateTrackMetadata(@AuthenticationPrincipal User user,
+            @PathVariable UUID trackId, @RequestBody TrackMetadata metadata) {
         Optional<Track> track = trackService.updateMetadata(user, trackId, metadata);
         if (track.isEmpty())
             return ResponseEntity.notFound().build();

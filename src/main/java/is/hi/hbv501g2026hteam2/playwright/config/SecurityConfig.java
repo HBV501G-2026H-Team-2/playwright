@@ -1,6 +1,7 @@
 package is.hi.hbv501g2026hteam2.playwright.config;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,7 +24,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.spa())
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/users/register", "/api/users/login").permitAll()
@@ -33,13 +34,11 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 .logout(logout -> logout
                         .logoutUrl("/api/users/logout")
-                        .logoutSuccessHandler((request, response, authentication) ->
-                            response.setStatus(HttpServletResponse.SC_NO_CONTENT)
-                        )
+                        .logoutSuccessHandler((request, response, authentication) -> response
+                                .setStatus(HttpServletResponse.SC_NO_CONTENT))
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID")
-                );
+                        .deleteCookies("JSESSIONID"));
 
         return http.build();
     }
@@ -55,11 +54,24 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CommandLineRunner bootstrapAdmin(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public CommandLineRunner bootstrapAdmin(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            @Value("${playwright.bootstrap-admin.password:}") String initialPassword) {
+
         return args -> {
-            // Insecure :)
+            // Only bootstrap an admin when explicitly configured
+            if (initialPassword == null || initialPassword.isBlank()) {
+                return;
+            }
+
+            // Never overwrite an existing administrator
             if (userRepository.findByUsername("admin").isEmpty()) {
-                User admin = new User("admin", passwordEncoder.encode("passwordbutsecure"), UserRole.Admin);
+                User admin = new User(
+                        "admin",
+                        passwordEncoder.encode(initialPassword),
+                        UserRole.Admin);
+
                 userRepository.save(admin);
             }
         };
