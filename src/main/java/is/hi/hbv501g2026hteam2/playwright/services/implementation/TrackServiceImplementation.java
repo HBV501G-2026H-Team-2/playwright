@@ -96,10 +96,8 @@ public class TrackServiceImplementation implements TrackService {
             metadata.setArtist(newMetadata.getArtist());
         if (newMetadata.getGenre() != null)
             metadata.setGenre(newMetadata.getGenre());
-        if (newMetadata.getTitle() != null)
-            metadata.setAlbumName(newMetadata.getAlbumName());
         if (newMetadata.getAlbumName() != null)
-            metadata.setTitle(newMetadata.getTitle());
+            metadata.setAlbumName(newMetadata.getAlbumName());
         if (newMetadata.getComment() != null)
             metadata.setComment(newMetadata.getComment());
         if (newMetadata.getYear() != null)
