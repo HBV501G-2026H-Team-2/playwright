@@ -6,7 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
-public final class TrackMetadata {
+public final class TrackMetadata implements Cloneable {
 
     private String title;
     private String artist;
@@ -85,6 +85,16 @@ public final class TrackMetadata {
 
     public void setYear(String year) {
         this.year = year;
+    }
+
+    @Override
+    public TrackMetadata clone() {
+        try {
+            TrackMetadata cloned = (TrackMetadata) super.clone();
+            return cloned;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 
 }

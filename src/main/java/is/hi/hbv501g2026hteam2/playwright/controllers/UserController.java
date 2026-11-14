@@ -138,8 +138,8 @@ public class UserController {
         }
 
         return wasDeleted
-            ? ResponseEntity.noContent().build()
-            : ResponseEntity.notFound().build();
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 
     @PatchMapping("/me")

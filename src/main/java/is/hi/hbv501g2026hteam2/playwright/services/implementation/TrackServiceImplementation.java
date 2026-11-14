@@ -11,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import is.hi.hbv501g2026hteam2.playwright.observer.AudioFileUpdater;
+import is.hi.hbv501g2026hteam2.playwright.observer.TrackMetadataObservable;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.TrackMetadata;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
@@ -23,13 +25,18 @@ public class TrackServiceImplementation implements TrackService {
 
     private final TrackRepository repository;
     private final AudioStorageService audioStorageService;
+    private final TrackMetadataObservable trackMetadataObservable;
 
     @Autowired
     public TrackServiceImplementation(
             TrackRepository repository,
-            AudioStorageService audioStorageService) {
+            AudioStorageService audioStorageService,
+            TrackMetadataObservable trackMetadataObservable) {
         this.repository = repository;
         this.audioStorageService = audioStorageService;
+        this.trackMetadataObservable = trackMetadataObservable;
+
+        trackMetadataObservable.addObserver(new AudioFileUpdater(audioStorageService));
     }
 
     @Override
@@ -43,7 +50,10 @@ public class TrackServiceImplementation implements TrackService {
             var metadata = audioStorageService.extractMetadata(track.getId());
             track.setMetadata(metadata);
 
-            return repository.save(track);
+            track = repository.save(track);
+            trackMetadataObservable.reportNew(track);
+
+            return track;
         } catch (IOException e) {
             delete(user, track.getId());
             throw new RuntimeException("could not store audio file", e);
@@ -88,6 +98,7 @@ public class TrackServiceImplementation implements TrackService {
 
         Track track = trackOpt.get();
         TrackMetadata metadata = track.getMetadata();
+        TrackMetadata oldMetadata = metadata.clone();
 
         // Note: duration is excluded since it depends on the actual file contents
         if (newMetadata.getTitle() != null)
@@ -104,13 +115,11 @@ public class TrackServiceImplementation implements TrackService {
             metadata.setYear(newMetadata.getYear());
 
         track.setMetadata(metadata);
-        try {
-            audioStorageService.writeMetadata(id, metadata);
-        } catch (IOException e) {
-            // Ignore failed file update, defer to metadata in database
-        }
 
-        return Optional.of(repository.save(track));
+        track = repository.save(track);
+        trackMetadataObservable.reportChanged(track, oldMetadata);
+
+        return Optional.of(track);
     }
 
     @Override

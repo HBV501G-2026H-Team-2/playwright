@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import is.hi.hbv501g2026hteam2.playwright.dto.AutoplaylistRequest;
 import is.hi.hbv501g2026hteam2.playwright.dto.PlaylistRequest;
 import is.hi.hbv501g2026hteam2.playwright.dto.PlaylistResponse;
 import is.hi.hbv501g2026hteam2.playwright.dto.TrackResponse;
@@ -48,12 +51,25 @@ public class PlaylistController {
         return ResponseEntity.created(location).body(new PlaylistResponse(playlist));
     }
 
+    @PostMapping("/auto")
+    public ResponseEntity<PlaylistResponse> createAutoplaylist(
+            @AuthenticationPrincipal User user, @RequestBody AutoplaylistRequest request) {
+        try {
+            Playlist playlist = playlistService.createAuto(user, request);
+            URI location = URI.create("/api/playlists/" + playlist.getId().toString());
+            return ResponseEntity.created(location).body(new PlaylistResponse(playlist));
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
+
     @GetMapping
     public ResponseEntity<Page<PlaylistResponse>> getPlaylists(
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) String name,
+            @RequestParam(required = false) Boolean auto,
             @PageableDefault(size = 50, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<Playlist> playlists = playlistService.getAll(user, name, pageable);
+        Page<Playlist> playlists = playlistService.getAll(user, name, auto, pageable);
         return ResponseEntity.ok(playlists.map(playlist -> new PlaylistResponse(playlist)));
     }
 

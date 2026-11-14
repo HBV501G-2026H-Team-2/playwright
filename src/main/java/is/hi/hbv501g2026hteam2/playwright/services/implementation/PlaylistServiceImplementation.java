@@ -10,7 +10,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import is.hi.hbv501g2026hteam2.playwright.dto.AutoplaylistRequest;
 import is.hi.hbv501g2026hteam2.playwright.dto.PlaylistRequest;
+import is.hi.hbv501g2026hteam2.playwright.observer.AutoplaylistUpdater;
+import is.hi.hbv501g2026hteam2.playwright.observer.TrackMetadataObservable;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Playlist;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.Track;
 import is.hi.hbv501g2026hteam2.playwright.persistence.entities.User;
@@ -25,9 +28,11 @@ public class PlaylistServiceImplementation implements PlaylistService {
     private TrackService trackService;
 
     @Autowired
-    public PlaylistServiceImplementation(PlaylistRepository repository, TrackService trackService) {
+    public PlaylistServiceImplementation(PlaylistRepository repository, TrackService trackService, TrackMetadataObservable trackMetadataObservable) {
         this.repository = repository;
         this.trackService = trackService;
+
+        trackMetadataObservable.addObserver(new AutoplaylistUpdater(this));
     }
 
     @Override
@@ -38,6 +43,15 @@ public class PlaylistServiceImplementation implements PlaylistService {
                 .toList();
 
         Playlist playlist = new Playlist(user, request.getName(), tracks);
+
+        return repository.save(playlist);
+    }
+
+    @Override
+    public Playlist createAuto(User user, AutoplaylistRequest request) {
+        Page<Track> tracks = trackService.getAll(user, request.getMetadata(), Pageable.unpaged());
+
+        Playlist playlist = new Playlist(user, request.getName(), tracks.getContent(), request.getMetadata());
 
         return repository.save(playlist);
     }
@@ -58,11 +72,14 @@ public class PlaylistServiceImplementation implements PlaylistService {
     }
 
     @Override
-    public Page<Playlist> getAll(User user, String name, Pageable pageable) {
+    public Page<Playlist> getAll(User user, String name, Boolean auto, Pageable pageable) {
         if (user == null)
             return Page.empty();
 
-        Example<Playlist> probe = Example.of(new Playlist(user, name, null));
+        Playlist examplePlaylist = new Playlist(user, name, null);
+        examplePlaylist.setIsAuto(auto);
+
+        Example<Playlist> probe = Example.of(examplePlaylist);
         return repository.findAll(probe, pageable);
     }
 
@@ -95,6 +112,30 @@ public class PlaylistServiceImplementation implements PlaylistService {
         }
 
         return Optional.of(repository.save(playlist));
+    }
+
+    @Override
+    public Playlist addTrack(Playlist playlist, Track track) {
+        if (!track.isVisibleTo(playlist.getOwner()))
+            return playlist;
+
+        List<Track> tracks = playlist.getTracks();
+        tracks.add(track);
+
+        playlist.setTracks(tracks);
+        return repository.save(playlist);
+    }
+
+    @Override
+    public Playlist removeTrack(Playlist playlist, Track track) {
+        if (!track.isVisibleTo(playlist.getOwner()))
+            return playlist;
+
+        List<Track> tracks = playlist.getTracks();
+        tracks.removeIf(t -> t.getId().equals(track.getId()));
+
+        playlist.setTracks(tracks);
+        return repository.save(playlist);
     }
 
 }
